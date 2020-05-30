@@ -4,7 +4,7 @@ from lexer import Lexer
 
 
 def test_simple():
-    """Assert everything about a simple boolean expression"""
+    """Assert everything about a simple boolean expeession"""
     code = '123 == 4567'
     lexer = Lexer(code)
     tokens = lexer.lex()
@@ -17,21 +17,21 @@ def test_simple():
     n2 = tokens[2]
     eof = tokens[3]
 
-    assert n1.tokentype == TokenType.INT
+    assert n1.token_type == TokenType.INT
     assert n1.data == 123
     assert n1.location.position == 0
     assert n1.location.length == 3
 
-    assert eq.tokentype == TokenType.EQUALEQUAL
+    assert eq.token_type == TokenType.EQUALEQUAL
     assert eq.location.position == 4
     assert eq.location.length == 2
 
-    assert n2.tokentype == TokenType.INT
+    assert n2.token_type == TokenType.INT
     assert n2.data == 4567
     assert n2.location.position == 7
     assert n2.location.length == 4
 
-    assert eof.tokentype == TokenType.EOF
+    assert eof.token_type == TokenType.EOF
     assert eof.location.position == 11
 
 
@@ -48,12 +48,12 @@ def test_keyword():
     num = tokens[1]
     ident = tokens[2]
 
-    assert kw.tokentype == TokenType.IF
+    assert kw.token_type == TokenType.IF
 
-    assert num.tokentype == TokenType.INT
+    assert num.token_type == TokenType.INT
     assert num.data == 2
 
-    assert ident.tokentype == TokenType.IDENT
+    assert ident.token_type == TokenType.IDENT
     assert ident.data == 'thing'
 
 
@@ -70,7 +70,7 @@ def token_test_template(code, token_types):
     lexer = Lexer(code)
     tokens = lexer.lex()
     tokens.pop(-1)  # ignore eof
-    lexed_token_types = list(map(lambda t: t.tokentype, tokens))
+    lexed_token_types = list(map(lambda t: t.token_type, tokens))
 
     assert len(lexed_token_types) == len(token_types)
 
@@ -78,11 +78,11 @@ def token_test_template(code, token_types):
         assert lexed_tt == spec_tt
 
 
-example_complex_code = "(12)+ *<- IdEnT;"
+example_complex_code = "(12)+ *<- IdEnT;  ~="
 token_types = list(
     map(lambda s: getattr(TokenType, s), [
         'LPAREN', 'INT', 'RPAREN', 'PLUS', 'STAR', 'LESSMINUS', 'IDENT',
-        'SEMICOLON'
+        'SEMICOLON', 'TILDEEQUAL'
     ]))
 
 

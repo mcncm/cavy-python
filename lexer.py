@@ -2,7 +2,31 @@ import copy
 from dataclasses import dataclass
 from typing import *
 
-from langtoken import Location, Token, TokenType, KEYWORDS
+from langtoken import Location, Token, TokenType
+
+# Reserved keywords. This dictionary controls lexer support for these tokens.
+KEYWORDS = {
+    'if': TokenType.IF,
+    'for': TokenType.FOR,
+    'fn': TokenType.FN,
+    'reg': TokenType.REG,
+}
+
+# Single-character tokens, whose lexer support is similarly controled by this
+# dictionary. Note that `TokenType.TILDE` is omitted, because it is handled
+# within the two-character-token case, to accomodate both `!` and `!=`. It
+# would be nice to come up with a work-around for this.
+SCTOKENS = {
+    '+': TokenType.PLUS,
+    '*': TokenType.STAR,
+    ',': TokenType.COMMA,
+    '!': TokenType.BANG,
+    ';': TokenType.SEMICOLON,
+    '[': TokenType.LBRACKET,
+    ']': TokenType.RBRACKET,
+    '(': TokenType.LPAREN,
+    ')': TokenType.RPAREN,
+}
 
 
 @dataclass
@@ -18,9 +42,9 @@ class EndOfFile(Exception):
 class ScanHead:
     def __init__(self, code: str):
         self.code = code
-        self.pos = 0  # character position in source
+        self.pos = 0   # character position in source
         self.line = 1  # currently scanned line number
-        self.col = 0  # currently scanned source column
+        self.col = 0   # currently scanned source column
 
     def curr(self) -> Optional[str]:
         try:
@@ -60,10 +84,10 @@ class ScanHead:
 
 class Lexer:
     def __init__(self, code: str):
-        self.code = code  # the source as a string
+        self.code = code            # the source as a string
         self.tail = ScanHead(code)  # follower pointer
         self.head = ScanHead(code)  # leader pointer
-        self.errors = []  # an error buffer that fills during lexing
+        self.errors = []            # an error buffer that fills in lexing
 
     def location(self) -> Location:
         """Location of current token"""
@@ -146,13 +170,13 @@ class Lexer:
             else:
                 self.error(f"undefined token `{self.token_chars()}`")
 
-        elif curr == '!':
+        elif curr == '~':
             head.forward()
             if head.curr() == '=':
                 head.forward()
-                return Token(TokenType.BANGEQUAL, self.location())
+                return Token(TokenType.TILDEEQUAL, self.location())
             else:
-                return Token(TokenType.BANG, self.location())
+                return Token(TokenType.TILDE, self.location())
 
         elif curr == '<':
             head.forward()
@@ -163,34 +187,9 @@ class Lexer:
                 self.error(f"undefined token `{self.token_chars()}`")
 
         # one-character operator and delimiter tokens
-        elif curr == '+':
+        elif (token_type := SCTOKENS.get(curr)):
             head.forward()
-            return Token(TokenType.PLUS, self.location())
+            return Token(token_type, self.location())
 
-        elif curr == '*':
-            head.forward()
-            return Token(TokenType.STAR, self.location())
-
-        elif curr == '!':
-            head.forward()
-            return Token(TokenType.BANG, self.location())
-
-        elif curr == ';':
-            head.forward()
-            return Token(TokenType.SEMICOLON, self.location())
-
-        elif curr == '[':
-            head.forward()
-            return Token(TokenType.LBRACKET, self.location())
-
-        elif curr == ']':
-            head.forward()
-            return Token(TokenType.RBRACKET, self.location())
-
-        elif curr == '(':
-            head.forward()
-            return Token(TokenType.LPAREN, self.location())
-
-        elif curr == ')':
-            head.forward()
-            return Token(TokenType.RPAREN, self.location())
+        else:
+            self.error("undefined token `{self.token_chars()}`")
