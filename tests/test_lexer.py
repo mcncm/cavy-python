@@ -1,4 +1,4 @@
-from langtoken import TokenType
+from lang_token import TokenType
 
 from lexer import Lexer
 

@@ -5,44 +5,14 @@ reference parser.
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
-from langtoken import Token, TokenType, Location
+from lang_token import Token, TokenType, Location
+from lang_ast import Expression, BinOp, UnOp, Literal, Group
 
 
 @dataclass
 class ParseError(Exception):
     token: Token
     message: str
-
-
-class AstNode:
-    pass
-
-
-class Expression(AstNode):
-    pass
-
-
-@dataclass
-class BinOp(Expression):
-    left: AstNode
-    op: Token
-    right: AstNode
-
-
-@dataclass
-class UnOp(Expression):
-    op: Token
-    right: AstNode
-
-
-@dataclass
-class Literal(Expression):
-    literal: Token
-
-
-@dataclass
-class Group(Expression):
-    expr: Expression
 
 
 def s_expr(ast: Expression) -> Tuple:
@@ -130,7 +100,7 @@ class Parser:
         while self.match_tokens(TokenType.STAR):
             op = self.prev()
             right = self.unary()
-            expr = Binop(expr, op, right)
+            expr = BinOp(expr, op, right)
         return expr
 
     def unary(self) -> Expression:
@@ -163,5 +133,6 @@ class Parser:
     def parse(self) -> Optional[Expression]:
         try:
             return self.expression()
-        except ParseError:
+        except ParseError as err:
+            self.errors.append((err.token, err.message))
             return None
