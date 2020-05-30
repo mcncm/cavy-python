@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
+
 @dataclass
 class Location:
     """Type for keeping track of the location of a source item"""
@@ -18,18 +19,23 @@ class TokenType(Enum):
     # keywords
     IF = auto()
     FOR = auto()
+    REG = auto()
+    FN = auto()
 
     # literals
     INT = auto()
 
     # two-character token types
     EQUALEQUAL = auto()
+    TILDEEQUAL = auto()
     LESSMINUS = auto()
 
     # single-character token types
     PLUS = auto()
     STAR = auto()
     BANG = auto()
+    TILDE = auto()
+    COMMA = auto()
     SEMICOLON = auto()
 
     # delimiters
@@ -41,15 +47,11 @@ class TokenType(Enum):
     # end of file
     EOF = auto()
 
-KEYWORDS = {
-    'if': TokenType.IF,
-    'for': TokenType.FOR,
-}
 
 class Token:
     """A lexical item"""
 
-    def __init__(self, tokentype: TokenType, location: Location, data=None):
-        self.tokentype = tokentype
+    def __init__(self, token_type: TokenType, location: Location, data=None):
+        self.token_type = token_type
         self.location = location
         self.data = data
