@@ -2,7 +2,7 @@ import copy
 from dataclasses import dataclass
 from typing import *
 
-from langtoken import Location, Token, TokenType
+from lang_token import Location, Token, TokenType
 
 # Reserved keywords. This dictionary controls lexer support for these tokens.
 KEYWORDS = {
@@ -192,4 +192,4 @@ class Lexer:
             return Token(token_type, self.location())
 
         else:
-            self.error("undefined token `{self.token_chars()}`")
+            self.error(f"undefined token `{self.token_chars()}`")
