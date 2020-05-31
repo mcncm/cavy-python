@@ -24,6 +24,7 @@ class TokenType(Enum):
 
     # literals
     INT = auto()
+    BOOL = auto()
 
     # two-character token types
     EQUALEQUAL = auto()

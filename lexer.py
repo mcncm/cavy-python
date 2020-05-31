@@ -12,6 +12,12 @@ KEYWORDS = {
     'reg': TokenType.REG,
 }
 
+# Keywords that are also literal values.
+LITERAL_KEYWORDS = {
+    'true': (TokenType.BOOL, True),
+    'false': (TokenType.BOOL, False),
+}
+
 # Single-character tokens, whose lexer support is similarly controled by this
 # dictionary. Note that `TokenType.TILDE` is omitted, because it is handled
 # within the two-character-token case, to accomodate both `!` and `!=`. It
@@ -139,11 +145,16 @@ class Lexer:
         if curr.isalpha():
             while head.isalnum():
                 head.forward()
-            val = self.token_chars()
-            if (token_type := KEYWORDS.get(val)):
+            ident = self.token_chars()
+            # matches some keyword
+            if (token_type := KEYWORDS.get(ident)):
                 token = Token(token_type, self.location())
+            elif (tt_val := LITERAL_KEYWORDS.get(ident)):
+                token_type, value = tt_val
+                token = Token(token_type, self.location(), data=value)
+            # doesn't match any keyword
             else:
-                token = Token(TokenType.IDENT, self.location(), data=val)
+                token = Token(TokenType.IDENT, self.location(), data=ident)
             return token
 
         # integer literal
@@ -168,6 +179,7 @@ class Lexer:
                 head.forward()
                 return Token(TokenType.EQUALEQUAL, self.location())
             else:
+                head.forward()
                 self.error(f"undefined token `{self.token_chars()}`")
 
         elif curr == '~':
@@ -184,6 +196,7 @@ class Lexer:
                 head.forward()
                 return Token(TokenType.LESSMINUS, self.location())
             else:
+                head.forward()
                 self.error(f"undefined token `{self.token_chars()}`")
 
         # one-character operator and delimiter tokens
@@ -192,4 +205,5 @@ class Lexer:
             return Token(token_type, self.location())
 
         else:
+            head.forward()
             self.error(f"undefined token `{self.token_chars()}`")
