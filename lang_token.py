@@ -19,8 +19,9 @@ class TokenType(Enum):
     # keywords
     IF = auto()
     FOR = auto()
-    REG = auto()
     FN = auto()
+    REG = auto()
+    PRINT = auto()
 
     # literals
     INT = auto()

@@ -4,7 +4,7 @@
 import os
 
 # A temporary project codename!
-LANG_NAME = 'Psyche'
+LANG_NAME = 'Cavy'
 
 PROJ_DIR = os.path.dirname(__file__)
 GIT_DIR = os.path.join(PROJ_DIR, '.git')

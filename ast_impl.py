@@ -18,18 +18,25 @@ class Expression(AstNode):
     pass
 
 
+class Statement(AstNode):
+    pass
+
+
 def visit_method_name(node: str):
     return 'visit_{}'.format(name.lower())
 
 
-def gen_expr_class(name: str, fields: Dict[str, Type]):
+def node_class(name: str, fields: Dict[str, Type], base):
     method_name = visit_method_name(name)
 
     def accept(self, visitor: 'Visitor'):
         return getattr(visitor, method_name)(self)
 
     namespace = {'accept': accept}
-    return make_dataclass(name, fields.items(), namespace=namespace)
+    return make_dataclass(name,
+                          fields.items(),
+                          bases=(base, ),
+                          namespace=namespace)
 
 
 # Here are the node types we'll use. Because we wish to automatically populate
@@ -52,10 +59,24 @@ EXPR_NODES = {
     },
 }
 
-# Generate the expression node classes
-abc_namespace = {}
-for name, fields in EXPR_NODES.items():
-    globals()[name] = gen_expr_class(name, fields)
-    abc_namespace[visit_method_name(name)] = abstractmethod(lambda: None)
+STMT_NODES = {
+    'ExprStmt': {
+        'expr': Expression,
+    },
+    'PrintStmt': {
+        'expr': Expression,
+    }
+}
 
-Visitor = type('Visitor', (ABC, ), abc_namespace)
+# Generate the expression node classes
+expr_abc_namespace = {}
+for name, fields in EXPR_NODES.items():
+    globals()[name] = node_class(name, fields, Expression)
+    expr_abc_namespace[visit_method_name(name)] = abstractmethod(lambda: None)
+ExprVisitor = type('ExprVisitor', (ABC, ), expr_abc_namespace)
+
+stmt_abc_namespace = {}
+for name, fields in STMT_NODES.items():
+    globals()[name] = node_class(name, fields, Statement)
+    stmt_abc_namespace[visit_method_name(name)] = abstractmethod(lambda: None)
+StmtVisitor = type('ExprVisitor', (ABC, ), stmt_abc_namespace)

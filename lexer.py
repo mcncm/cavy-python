@@ -10,6 +10,7 @@ KEYWORDS = {
     'for': TokenType.FOR,
     'fn': TokenType.FN,
     'reg': TokenType.REG,
+    'print': TokenType.PRINT,
 }
 
 # Keywords that are also literal values.

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 from lang_token import Token, TokenType, Location
-from lang_ast import Expression, BinOp, UnOp, Literal, Group
+from lang_ast import *
 
 
 @dataclass
@@ -68,6 +68,21 @@ class Parser:
         self.error(self.curr(), message)
 
     # Nonterminals
+    def statement(self) -> Statement:
+        if self.match_tokens(TokenType.PRINT):
+            return self.print_statement()
+        return self.expr_statement()
+
+    def print_statement(self) -> PrintStmt:
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "missing ';' after expression")
+        return PrintStmt(value)
+
+    def expr_statement(self) -> ExprStmt:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "missing ';' after expression")
+        return ExprStmt(expr)
+
     def expression(self):
         return self.equality()
 
@@ -130,9 +145,8 @@ class Parser:
             return
         self.forward()
 
-    def parse(self) -> Optional[Expression]:
-        try:
-            return self.expression()
-        except ParseError as err:
-            self.errors.append((err.token, err.message))
-            return None
+    def parse(self) -> List[Statement]:
+        statements = []
+        while not self.at_end():
+            statements.append(self.statement())
+        return statements
