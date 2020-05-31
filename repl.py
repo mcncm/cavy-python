@@ -14,6 +14,7 @@ from typing import Tuple, Optional
 from lexer import Lexer, LexError
 from lang_token import Location, Token
 from lang_parser import Parser, ParseError, s_expr
+from interpreter import Interpreter
 import config
 
 GREETING = """
@@ -127,7 +128,10 @@ class Repl:
                     for err in parser.errors:
                         pprint_parse_error(err)
                     continue
-                pprint(s_expr(ast))
+                interpreter = Interpreter()
+                res = interpreter.evaluate(ast)
+                print(res)
+
             except KeyboardInterrupt:
                 # This exception must be handled separately, as it should only
                 # quit the repl. raise it to the very top.

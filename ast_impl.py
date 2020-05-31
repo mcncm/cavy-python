@@ -25,8 +25,8 @@ def visit_method_name(node: str):
 def gen_expr_class(name: str, fields: Dict[str, Type]):
     method_name = visit_method_name(name)
 
-    def accept(visitor: 'Visitor') -> None:
-        visitor.getattr(method_name)()
+    def accept(self, visitor: 'Visitor'):
+        return getattr(visitor, method_name)(self)
 
     namespace = {'accept': accept}
     return make_dataclass(name, fields.items(), namespace=namespace)
