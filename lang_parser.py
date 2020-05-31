@@ -111,7 +111,7 @@ class Parser:
         return self.primary()
 
     def primary(self) -> Expression:
-        if self.match_tokens(TokenType.INT):
+        if self.match_tokens(TokenType.INT, TokenType.BOOL):
             return Literal(self.prev())
         if self.match_tokens(TokenType.LPAREN):
             expr = self.expression()
