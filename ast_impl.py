@@ -18,7 +18,11 @@ class Expression(AstNode):
     pass
 
 
-class Statement(AstNode):
+class Declaration(AstNode):
+    pass
+
+
+class Statement(Declaration):
     pass
 
 
@@ -57,6 +61,9 @@ EXPR_NODES = {
     'Group': {
         'expr': Expression
     },
+    'Variable': {
+        'name': Token,
+    }
 }
 
 STMT_NODES = {
@@ -65,6 +72,10 @@ STMT_NODES = {
     },
     'PrintStmt': {
         'expr': Expression,
+    },
+    'BindStmt': {
+        'lhs': Expression,
+        'rhs': Expression,
     }
 }
 

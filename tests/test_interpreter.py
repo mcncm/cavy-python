@@ -61,3 +61,15 @@ def test_complex_statements():
 
 def test_silent_statement():
     stmt_test_template('print 8; 12 + 6; print false;', ['8', 'False'])
+
+def test_simple_assignment():
+    stmt_test_template('v <- 1; print v;', ['1'])
+
+def test_reassignment_1():
+    stmt_test_template('v <- 1; v <- 2; print v;', ['2'])
+
+def test_reassignment_2():
+    stmt_test_template('v <- 1; v <- v + 1; print v;', ['2'])
+
+def test_variable_arithmetic():
+    stmt_test_template('x <- 3; y <- 4; print 3 * 4;', ['12'])

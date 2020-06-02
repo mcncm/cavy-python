@@ -49,7 +49,6 @@ class TokenType(Enum):
     # end of file
     EOF = auto()
 
-
 class Token:
     """A lexical item"""
 
@@ -57,3 +56,7 @@ class Token:
         self.token_type = token_type
         self.location = location
         self.data = data
+
+    def __repr__(self) -> str:
+        data_part = f", data {self.data}" if self.data else ""
+        return f"<Token: type {self.token_type.name}{data_part}>"

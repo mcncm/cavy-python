@@ -1,10 +1,14 @@
 from typing import Any, List
 
+from environment import Environment
 from lang_token import TokenType
 from lang_ast import *
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
+
+    def __init__(self):
+        self.environment = Environment()
 
     def visit_binop(self, expr: BinOp) -> Any:
         left = self.evaluate(expr.left)
@@ -32,12 +36,20 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visit_group(self, expr: Group) -> Any:
         return self.evaluate(expr.expr)
 
+    def visit_variable(self, expr: Variable) -> Any:
+        # TODO error handling
+        return self.environment[expr]
+
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
         self.evaluate(stmt.expr)
 
     def visit_printstmt(self, stmt: PrintStmt) -> None:
         value = self.evaluate(stmt.expr)
         print(value)
+
+    def visit_bindstmt(self, stmt: BindStmt) -> None:
+        value = self.evaluate(stmt.rhs)
+        self.environment[stmt.lhs] = value
 
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)

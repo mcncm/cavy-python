@@ -99,6 +99,7 @@ class Repl:
 
     def interact(self):
         print(GREETING)
+        interpreter = Interpreter()
         while True:
             try:
                 print(PROMPT, end='')
@@ -124,15 +125,13 @@ class Repl:
                         pprint_lex_error(err)
                     continue
                 parser = Parser(tokens)
-                # parse the line as an expression, not a statement
-                ast = parser.expression()
-                if not ast:
+                # parse the line as a statement
+                stmt = parser.declaration()
+                if not stmt:
                     for err in parser.errors:
                         pprint_parse_error(err)
                     continue
-                interpreter = Interpreter()
-                res = interpreter.evaluate(ast)
-                print(res)
+                interpreter.execute(stmt)
 
             except KeyboardInterrupt:
                 # This exception must be handled separately, as it should only
@@ -181,7 +180,7 @@ if __name__ == '__main__':
 
     argparser = init_argparse()
     args_ns = argparser.parse_args(sys.argv[1:])
-    if 'script' in args_ns:
+    if args_ns.script:
         try:
             interpret_script(args_ns.script)
         except FileNotFoundError:
