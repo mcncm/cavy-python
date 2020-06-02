@@ -31,10 +31,11 @@ def s_expr(ast: Expression) -> Tuple:
 class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
-        self.pos = 0
-        self.errors = []
+        self.pos = 0          # scan head position in token stream
+        self.errors = []      # a buffer that fills up as parse errors are found
 
     # Helper methods
+
     def error(self, token: Token, message: str):
         raise ParseError(token, message)
 
@@ -45,6 +46,10 @@ class Parser:
     def curr(self):
         return self.tokens[self.pos]
 
+    def next(self):
+        assert self.pos < len(self.tokens) - 1
+        return self.tokens[self.pos + 1]
+
     def at_end(self):
         return self.curr().token_type == TokenType.EOF
 
@@ -54,13 +59,27 @@ class Parser:
         return self.prev()
 
     def check_token(self, token_type: TokenType) -> bool:
-        return not self.at_end() and self.curr().token_type == token_type
+        """Return True if the token at the given index exists and is of the given
+        type."""
+        in_bounds = self.pos < len(self.tokens)
+        return in_bounds and self.tokens[self.pos].token_type == token_type
 
     def match_tokens(self, *token_types: List[TokenType]) -> bool:
+        """Advance if the current token is one of this list"""
         if any([self.check_token(tt) for tt in token_types]):
             self.forward()
             return True
         return False
+
+    def match_token_sequence(self, *token_types: List[TokenType]) -> bool:
+        """Advance if the following tokens are exactly this list, in order."""
+        saved_pos = self.pos
+        for tt in token_types:
+            if not self.check_token(tt):
+                self.pos = saved_pos
+                return False
+            self.forward()
+        return True
 
     def consume(self, token_type: TokenType, message: str):
         if self.check_token(token_type):
@@ -68,10 +87,30 @@ class Parser:
         self.error(self.curr(), message)
 
     # Nonterminals
+
+    def declaration(self) -> Optional[Statement]:
+        try:
+            if self.match_token_sequence(TokenType.IDENT, TokenType.LESSMINUS):
+                return self.bind()
+            return self.statement()
+        except ParseError as err:
+            self.errors.append((err.token, err.message))
+            self.synchronize()
+
     def statement(self) -> Statement:
         if self.match_tokens(TokenType.PRINT):
             return self.print_statement()
         return self.expr_statement()
+
+    def bind(self) -> BindStmt:
+        """Production rule for assignment declarations. Because this lives under a
+        `match_token_sequence`, we're assumed to be positioned at first token
+        of the rhs.
+        """
+        lhs = Variable(self.tokens[self.pos - 2])
+        rhs = self.expression()
+        self.consume(TokenType.SEMICOLON, "missing ';' after expression")
+        return BindStmt(lhs, rhs)
 
     def print_statement(self) -> PrintStmt:
         value = self.expression()
@@ -128,10 +167,12 @@ class Parser:
     def primary(self) -> Expression:
         if self.match_tokens(TokenType.INT, TokenType.BOOL):
             return Literal(self.prev())
-        if self.match_tokens(TokenType.LPAREN):
+        elif self.match_tokens(TokenType.LPAREN):
             expr = self.expression()
             self.consume(TokenType.RPAREN, "missing ')'")
             return Group(expr)
+        elif self.match_tokens(TokenType.IDENT):
+            return Variable(self.prev())
         self.error(self.curr(), "expression expected")
 
     def synchronize(self) -> None:
@@ -148,5 +189,5 @@ class Parser:
     def parse(self) -> List[Statement]:
         statements = []
         while not self.at_end():
-            statements.append(self.statement())
+            statements.append(self.declaration())
         return statements
