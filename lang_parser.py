@@ -8,6 +8,8 @@ from typing import List, Optional, Tuple
 from lang_token import Token, TokenType, Location
 from lang_ast import *
 
+MAX_ARGS = 64
+
 
 @dataclass
 class ParseError(Exception):
@@ -33,8 +35,8 @@ def s_expr(ast: Expression) -> Tuple:
 class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
-        self.pos = 0          # scan head position in token stream
-        self.errors = []      # a buffer that fills up as parse errors are found
+        self.pos = 0  # scan head position in token stream
+        self.errors = []  # a buffer that fills up as parse errors are found
 
     # Helper methods
 
@@ -188,7 +190,29 @@ class Parser:
             op = self.prev()
             right = self.unary()
             return UnOp(op, right)
-        return self.primary()
+        return self.call()
+
+    def call(self):
+        expr = self.primary()
+        while True:
+            if self.match_tokens(TokenType.LPAREN):
+                expr = self.finish_call(expr)
+            else:
+                break
+        return expr
+
+    def finish_call(self, callee: Expression):
+        args = []
+        if not self.check_token(TokenType.RPAREN):
+            while True:
+                if len(args) >= MAX_ARGS:
+                    self.error(self.curr(),
+                               "maximum number of arguments exceeded")
+                args.append(self.expression())
+                if not self.match_tokens(TokenType.COMMA):
+                    break
+        self.consume(TokenType.RPAREN, "missing ')' at end of arguments")
+        return Call(callee, args)
 
     def primary(self) -> Optional[Expression]:
         if self.match_tokens(TokenType.INT, TokenType.BOOL):

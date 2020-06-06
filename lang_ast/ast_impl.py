@@ -63,6 +63,10 @@ EXPR_NODES = {
     },
     'Variable': {
         'name': Token,
+    },
+    'Call': {
+        'callee': Expression,
+        'args': List[Expression],
     }
 }
 

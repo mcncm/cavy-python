@@ -29,6 +29,7 @@ class TokenType(Enum):
     BOOL = auto()
 
     # two-character token types
+    STOPSTOP = auto()
     EQUALEQUAL = auto()
     TILDEEQUAL = auto()
     LESSMINUS = auto()
