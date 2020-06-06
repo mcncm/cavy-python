@@ -18,6 +18,7 @@ class TokenType(Enum):
 
     # keywords
     IF = auto()
+    ELSE = auto()
     FOR = auto()
     FN = auto()
     REG = auto()
@@ -45,9 +46,12 @@ class TokenType(Enum):
     RBRACKET = auto()
     LPAREN = auto()
     RPAREN = auto()
+    LBRACE = auto()
+    RBRACE = auto()
 
     # end of file
     EOF = auto()
+
 
 class Token:
     """A lexical item"""
