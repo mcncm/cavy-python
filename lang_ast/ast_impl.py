@@ -49,17 +49,17 @@ EXPR_NODES = {
     'BinOp': {
         'left': Expression,
         'op': Token,
-        'right': Expression
+        'right': Expression,
     },
     'UnOp': {
         'op': Token,
-        'right': Expression
+        'right': Expression,
     },
     'Literal': {
-        'literal': Token
+        'literal': Token,
     },
     'Group': {
-        'expr': Expression
+        'expr': Expression,
     },
     'Variable': {
         'name': Token,
@@ -79,6 +79,11 @@ STMT_NODES = {
     },
     'BlockStmt': {
         'stmts': List[Statement]
+    },
+    'IfStmt': {
+        'cond': Expression,
+        'then_branch': Statement,
+        'else_branch': Statement,
     },
 }
 

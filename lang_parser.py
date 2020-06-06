@@ -64,7 +64,7 @@ class Parser:
         """Return True if the token at the given index exists and is of the given
         type."""
         in_bounds = self.pos < len(self.tokens)
-        return in_bounds and self.tokens[self.pos].token_type == token_type
+        return in_bounds and self.curr().token_type == token_type
 
     def match_tokens(self, *token_types: TokenType) -> bool:
         """Advance if the current token is one of this list"""
@@ -100,10 +100,12 @@ class Parser:
             self.synchronize()
 
     def statement(self) -> Statement:
-        if self.match_tokens(TokenType.PRINT):
+        if self.match_tokens(TokenType.IF):
+            return self.if_statement()
+        elif self.match_tokens(TokenType.PRINT):
             return self.print_statement()
         elif self.match_tokens(TokenType.LBRACE):
-            return BlockStmt(self.block_statement())
+            return self.block_statement()
         return self.expr_statement()
 
     def assignment(self) -> AssnStmt:
@@ -116,6 +118,19 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "missing ';' after expression")
         return AssnStmt(lhs, rhs)
 
+    def if_statement(self) -> IfStmt:
+        condition = self.expression()
+        self.consume(TokenType.LBRACE,
+                     "missing '{' opening direct branch of conditional")
+        then_branch = self.block_statement()
+        if self.match_tokens(TokenType.ELSE):
+            self.consume(TokenType.LBRACE,
+                         "missing '{' opening indirect branch of conditional")
+            else_branch = self.block_statement()
+        else:
+            else_branch = None
+        return IfStmt(condition, then_branch, else_branch)
+
     def print_statement(self) -> PrintStmt:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "missing ';' after expression")
@@ -126,7 +141,7 @@ class Parser:
         while not self.check_token(TokenType.RBRACE) and not self.at_end():
             statements.append(self.declaration())
         self.consume(TokenType.RBRACE, "missing '}' at end of block")
-        return statements
+        return BlockStmt(statements)
 
     def expr_statement(self) -> ExprStmt:
         expr = self.expression()

@@ -12,7 +12,8 @@ class Environment:
         # var.name.data contains the actual variable name string
         name = var.name.data
         scope = self
-        while scope.enclosing is not None:
+
+        while scope is not None:
             if name in scope.values:
                 scope.values[name] = value
                 return

@@ -2,14 +2,24 @@ from .test_interpreter import stmt_test_template
 
 def test_simple_scope():
     stmt_test_template("""
-    v <- 2;
+    u <- 0;
     {
-      v <- 3;
+      v <- 1;
       print v;
     }
-    print v;
+    print u;
     """,
-    ['3', '2'])
+    ['1', '0'])
+
+def test_mixed_scope():
+    stmt_test_template("""
+    x <- 7;
+    {
+      x <- x + 1;
+    }
+    print x;
+    """,
+    ['8'])
 
 def test_complex_scope():
     stmt_test_template("""
@@ -33,4 +43,4 @@ def test_complex_scope():
     }
     print v;
     """,
-    ['10', '3', '26', '0', '2'])
+    ['10', '3', '26', '0', '3'])
