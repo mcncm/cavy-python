@@ -1,14 +1,18 @@
 from typing import Any, List
 
+from callables import BUILTINS
 from environment import Environment
 from lang_token import TokenType
 from lang_ast import *
 
 
-class Interpreter(ExprVisitor, StmtVisitor):
+class InterpreterError(Exception):
+    pass
 
+
+class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
-        self.environment = Environment()
+        self.environment = Environment(**BUILTINS)
 
     def visit_binop(self, expr: BinOp) -> Any:
         left = self.evaluate(expr.left)
@@ -39,6 +43,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visit_variable(self, expr: Variable) -> Any:
         # TODO error handling
         return self.environment[expr]
+
+    def visit_call(self, expr: Call) -> Any:
+        callee = self.evaluate(expr.callee)
+        args = [self.evaluate(arg) for arg in expr.args]
+        if len(args) != callee.arity:
+            raise InterpreterError(
+                expr.paren, f"expected {callee.arity} arguments, got {args}.")
+        return callee.call(self, args)
 
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
         self.evaluate(stmt.expr)
@@ -71,7 +83,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def execute(self, stmt: Statement) -> None:
         return stmt.accept(self)
 
-    def execute_blockstmt(self, stmts: List[Statement], env: Environment) -> None:
+    def execute_blockstmt(self, stmts: List[Statement],
+                          env: Environment) -> None:
         # TODO consider changing the Environment implementation to be a context
         # manager.
         prev = self.environment

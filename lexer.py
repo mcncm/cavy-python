@@ -196,6 +196,15 @@ class Lexer:
             else:
                 return Token(TokenType.TILDE, self.location())
 
+        elif curr == '.':
+            head.forward()
+            if head.curr() == '.':
+                head.forward()
+                return Token(TokenType.STOPSTOP, self.location())
+            else:
+                head.forward()
+                self.error(f"undefined token `{self.token_chars()}`")
+
         elif curr == '<':
             head.forward()
             if head.curr() == '-':
