@@ -55,6 +55,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self.execute_blockstmt(stmt.stmts, Environment(self.environment))
         return None
 
+    def visit_ifstmt(self, stmt: IfStmt) -> None:
+        # TODO decide what must be truthy and what falsey.
+        if self.evaluate(stmt.cond):
+            self.execute(stmt.then_branch)
+            return
+        if (else_branch := stmt.else_branch):
+            self.execute(else_branch)
+
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)
 
