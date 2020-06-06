@@ -7,6 +7,7 @@ from lang_token import Location, Token, TokenType
 # Reserved keywords. This dictionary controls lexer support for these tokens.
 KEYWORDS = {
     'if': TokenType.IF,
+    'else': TokenType.ELSE,
     'for': TokenType.FOR,
     'fn': TokenType.FN,
     'reg': TokenType.REG,
@@ -33,6 +34,8 @@ SCTOKENS = {
     ']': TokenType.RBRACKET,
     '(': TokenType.LPAREN,
     ')': TokenType.RPAREN,
+    '{': TokenType.LBRACE,
+    '}': TokenType.RBRACE,
 }
 
 
@@ -160,6 +163,8 @@ class Lexer:
 
         # integer literal
         elif curr.isdigit():
+            # this expression short-circuits, so it works correctly if
+            # head.curr() is None.
             while head.curr() and head.curr().isdigit():
                 head.forward()
             if head.curr() and head.curr().isalpha():

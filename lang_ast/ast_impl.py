@@ -5,7 +5,7 @@ lang_ast.py.
 
 from abc import ABC, abstractmethod
 from dataclasses import make_dataclass
-from typing import Dict, Type
+from typing import Dict, Type, List
 
 from lang_token import Token
 
@@ -73,10 +73,13 @@ STMT_NODES = {
     'PrintStmt': {
         'expr': Expression,
     },
-    'BindStmt': {
-        'lhs': Expression,
+    'AssnStmt': {
+        'lhs': Token,
         'rhs': Expression,
-    }
+    },
+    'BlockStmt': {
+        'stmts': List[Statement]
+    },
 }
 
 # Generate the expression node classes

@@ -26,6 +26,8 @@ def s_expr(ast: Expression) -> Tuple:
         return ast.literal.data
     elif isinstance(ast, Group):
         return s_expr(ast.expr)
+    else:
+        raise NotImplementedError
 
 
 class Parser:
@@ -64,14 +66,14 @@ class Parser:
         in_bounds = self.pos < len(self.tokens)
         return in_bounds and self.tokens[self.pos].token_type == token_type
 
-    def match_tokens(self, *token_types: List[TokenType]) -> bool:
+    def match_tokens(self, *token_types: TokenType) -> bool:
         """Advance if the current token is one of this list"""
         if any([self.check_token(tt) for tt in token_types]):
             self.forward()
             return True
         return False
 
-    def match_token_sequence(self, *token_types: List[TokenType]) -> bool:
+    def match_token_sequence(self, *token_types: TokenType) -> bool:
         """Advance if the following tokens are exactly this list, in order."""
         saved_pos = self.pos
         for tt in token_types:
@@ -91,7 +93,7 @@ class Parser:
     def declaration(self) -> Optional[Statement]:
         try:
             if self.match_token_sequence(TokenType.IDENT, TokenType.LESSMINUS):
-                return self.bind()
+                return self.assignment()
             return self.statement()
         except ParseError as err:
             self.errors.append((err.token, err.message))
@@ -100,22 +102,31 @@ class Parser:
     def statement(self) -> Statement:
         if self.match_tokens(TokenType.PRINT):
             return self.print_statement()
+        elif self.match_tokens(TokenType.LBRACE):
+            return BlockStmt(self.block_statement())
         return self.expr_statement()
 
-    def bind(self) -> BindStmt:
+    def assignment(self) -> AssnStmt:
         """Production rule for assignment declarations. Because this lives under a
         `match_token_sequence`, we're assumed to be positioned at first token
         of the rhs.
         """
-        lhs = Variable(self.tokens[self.pos - 2])
+        lhs = self.tokens[self.pos - 2]
         rhs = self.expression()
         self.consume(TokenType.SEMICOLON, "missing ';' after expression")
-        return BindStmt(lhs, rhs)
+        return AssnStmt(lhs, rhs)
 
     def print_statement(self) -> PrintStmt:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "missing ';' after expression")
         return PrintStmt(value)
+
+    def block_statement(self) -> BlockStmt:
+        statements = []
+        while not self.check_token(TokenType.RBRACE) and not self.at_end():
+            statements.append(self.declaration())
+        self.consume(TokenType.RBRACE, "missing '}' at end of block")
+        return statements
 
     def expr_statement(self) -> ExprStmt:
         expr = self.expression()
@@ -164,7 +175,7 @@ class Parser:
             return UnOp(op, right)
         return self.primary()
 
-    def primary(self) -> Expression:
+    def primary(self) -> Optional[Expression]:
         if self.match_tokens(TokenType.INT, TokenType.BOOL):
             return Literal(self.prev())
         elif self.match_tokens(TokenType.LPAREN):
@@ -189,5 +200,6 @@ class Parser:
     def parse(self) -> List[Statement]:
         statements = []
         while not self.at_end():
-            statements.append(self.declaration())
+            if (decl := self.declaration()):
+                statements.append(decl)
         return statements
