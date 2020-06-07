@@ -76,6 +76,15 @@ class ScanHead:
         while self.isnotspace():
             self.forward()
 
+    def advance_to_newline(self) -> None:
+        # until self.curr() returns `None` at EOF
+        while (curr := self.curr()):
+            if curr == '\n':
+                self.forward()
+                return
+            self.forward()
+        raise EndOfFile
+
     # The following several methods lift boolean string methods to optional
     # strings. This feels unnecessarily manual, but I don't think Python offers
     # the language constructs I would like to use.
@@ -219,6 +228,18 @@ class Lexer:
             head.forward()
             return Token(token_type, self.location())
 
+        # comments
+        elif curr == '/':
+            head.forward()
+            if head.curr() == '/':
+                self.head.advance_to_newline()
+                # must return a token even on this branch--recurse!
+                return self.next_token()
+            else:
+                head.forward()
+                self.error(f"undefined token `{self.token_chars()}`")
+
+        # otherwise, simply proceed
         else:
             head.forward()
             self.error(f"undefined token `{self.token_chars()}`")

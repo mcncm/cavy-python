@@ -1,12 +1,16 @@
 from typing import Any, List
 
-from callables import BUILTINS
+from functions import BUILTINS, Function
 from environment import Environment
 from lang_token import TokenType
 from lang_ast import *
 
 
 class InterpreterError(Exception):
+    pass
+
+
+class _TypeError(InterpreterError):
     pass
 
 
@@ -46,11 +50,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_call(self, expr: Call) -> Any:
         callee = self.evaluate(expr.callee)
+        if not isinstance(callee, Function):
+            raise _TypeError(f"{callee} not a function")
         args = [self.evaluate(arg) for arg in expr.args]
         if len(args) != callee.arity:
             raise InterpreterError(
                 expr.paren, f"expected {callee.arity} arguments, got {args}.")
-        return callee.call(self, args)
+        return callee.call(self.environment, args)
 
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
         self.evaluate(stmt.expr)
