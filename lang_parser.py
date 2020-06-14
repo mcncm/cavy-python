@@ -85,7 +85,7 @@ class Parser:
             self.forward()
         return True
 
-    def consume(self, token_type: TokenType, message: str):
+    def consume(self, token_type: TokenType, message: str) -> Token:
         if self.check_token(token_type):
             return self.forward()
         self.error(self.curr(), message)
@@ -211,8 +211,8 @@ class Parser:
                 args.append(self.expression())
                 if not self.match_tokens(TokenType.COMMA):
                     break
-        self.consume(TokenType.RPAREN, "missing ')' at end of arguments")
-        return Call(callee, args)
+        paren = self.consume(TokenType.RPAREN, "missing ')' at end of arguments")
+        return Call(callee, args, paren)
 
     def primary(self) -> Optional[Expression]:
         if self.match_tokens(TokenType.INT, TokenType.BOOL):

@@ -11,7 +11,14 @@ def test_simple_comment():
 def test_comment_with_assignment():
     stmt_test_template("""
     v <- 6;
-    // ihtfp; v <- 8
+    // foo; v <- 8
     print v;
     """,
     ['6'])
+
+def test_comment_same_line():
+    stmt_test_template("""
+    v <- 7;  // yadda yadda yadda
+    print v;
+    """,
+    ['7'])
