@@ -6,7 +6,7 @@ from circuits.gates import Gate
 from errors import CavyRuntimeError
 from lang_token import Token
 from lang_ast import Variable
-from qubit import Qubit
+from lang_types import Qubit
 
 
 class UnboundNameError(CavyRuntimeError):

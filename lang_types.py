@@ -24,4 +24,3 @@ class Qubit(CavyType):
 
     def __hash__(self) -> int:
         return hash(self.index)
-
