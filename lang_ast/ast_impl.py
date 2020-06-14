@@ -8,6 +8,7 @@ from dataclasses import make_dataclass
 from typing import Dict, Type, List
 
 from lang_token import Token
+from lang_types import CavyType
 
 
 class AstNode:
@@ -67,6 +68,7 @@ EXPR_NODES = {
     'Call': {
         'callee': Expression,
         'args': List[Expression],
+        'paren': Token,
     }
 }
 

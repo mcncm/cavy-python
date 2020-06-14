@@ -11,6 +11,9 @@ import sys
 from traceback import print_tb
 from typing import Tuple, Optional
 
+import dependencies as deps
+from environment import UnboundNameError
+from errors import CavyRuntimeError
 from lexer import Lexer, LexError
 from lang_token import Location, Token
 from lang_parser import Parser, ParseError, s_expr
@@ -94,12 +97,12 @@ def git_commit() -> Optional[str]:
 
 class Repl:
     def __init__(self, debug=False):
+        self.interpreter = Interpreter()
         self.history = []
         self.debug = debug
 
     def interact(self):
         print(GREETING)
-        interpreter = Interpreter()
         while True:
             try:
                 print(PROMPT, end='')
@@ -116,6 +119,10 @@ class Repl:
                 if line == ':e':
                     # cause an interpreter error
                     raise Exception("Raised a manual error")
+                if line == ':cirq':
+                    # compile and print the circuit with Cirq.
+                    self.print_cirq_circuit()
+                    continue
 
                 # now, eval the line
                 lexer = Lexer(line)
@@ -131,16 +138,21 @@ class Repl:
                     for err in parser.errors:
                         pprint_parse_error(err)
                     continue
-                interpreter.execute(stmt)
+                self.interpreter.execute(stmt)
+
+            except CavyRuntimeError as err:
+                print(err)
 
             except KeyboardInterrupt:
                 # This exception must be handled separately, as it should only
                 # quit the repl. raise it to the very top.
                 raise KeyboardInterrupt
+
             except Exception as err:
                 # display the exception
                 print(CONTACT_DEVELOPER)
                 if self.debug:
+                    print(stack_trace(err))
                     print(err)
                 self.crash_report(err)
 
@@ -164,6 +176,11 @@ class Repl:
         logs.append(report)
         with open(config.CRASHLOG, 'w') as f:
             json.dump(logs, f)
+
+    @deps.require('cirq')
+    def print_cirq_circuit(self):
+        circuit = self.interpreter.environment.circuit.to_cirq()
+        print(circuit)
 
 
 def interpret_script(script_path: str):

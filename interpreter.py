@@ -55,7 +55,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         args = [self.evaluate(arg) for arg in expr.args]
         if len(args) != callee.arity:
             raise InterpreterError(
-                expr.paren, f"expected {callee.arity} arguments, got {args}.")
+                expr.paren, f"Function takes {callee.arity} arguments; got {len(args)}.")
         return callee.call(self.environment, args)
 
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
