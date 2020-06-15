@@ -58,3 +58,17 @@ def test_two_split():
         "q1 <- split(qubit()); q2 <- split(qubit());",
         [(gates.HadamardGate, [0]), (gates.HadamardGate, [1])]
     )
+
+
+def test_phase_gate():
+    circuit_test_template(
+        "q <- ~qubit();",
+        [(gates.NotGate, [0])]
+    )
+
+
+def test_phase_gate():
+    circuit_test_template(
+        "q <- split(qubit()); r <- phase(q);",
+        [(gates.HadamardGate, [0]), (gates.PhaseGate, [0])]
+    )

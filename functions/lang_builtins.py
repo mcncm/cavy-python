@@ -24,10 +24,12 @@ class Split(Function):
 
 class Phase(Function):
     """Implements a logical phase gate on a single qubit"""
-    arity = 2
+    arity = 1
 
     def call(self, env: Environment, args) -> Qubit:
-        raise NotImplementedError
+        qubit = args[0]
+        env.add_gate(gates.PhaseGate(qubit.index))
+        return qubit
 
 
 class Debug(Function):

@@ -20,7 +20,7 @@ class Qubit(CavyType):
         return self.index == other.index
 
     def __repr__(self) -> str:
-        return f"<Qubit {index}>"
+        return f"<Qubit {self.index}>"
 
     def __hash__(self) -> int:
         return hash(self.index)

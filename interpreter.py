@@ -1,9 +1,11 @@
 from typing import Any, List
 
-from functions import BUILTINS, Function
+import circuits.gates as gates
 from environment import Environment
-from lang_token import TokenType
+from functions import BUILTINS, Function
 from lang_ast import *
+from lang_token import TokenType
+from lang_types import Qubit
 
 
 class InterpreterError(Exception):
@@ -36,7 +38,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         token_type = expr.op.token_type
         if token_type == TokenType.TILDE:
-            return not right
+            if isinstance(right, Qubit):
+                self.environment.add_gate(gates.NotGate(right.index))
+                return right
+            else:
+                return not right
 
     def visit_literal(self, expr: Literal) -> Any:
         return expr.literal.data
