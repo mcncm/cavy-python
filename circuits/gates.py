@@ -22,13 +22,9 @@ class NotGate(Gate):
 class PhaseGate(Gate):
     arity = 1
 
-    def __init__(phase: float, *qubits: List[int]):
-        super().__init__(qubits)
-        self.phase = float
-
     @deps.require('cirq')
     def to_cirq(self, qubits):
-        raise NotImplementedError
+        return deps.cirq.Z(qubits[self.qubits[0]])
 
 
 class HadamardGate(Gate):
