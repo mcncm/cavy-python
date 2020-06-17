@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any
+from typing import Any, List
 
 from circuits.circuit import Circuit
 from circuits.gates import Gate
@@ -39,15 +39,11 @@ class NoopAllocator:
 
 
 class Environment:
-    def __init__(self, enclosing=None, controls=None, **defaults):
+    def __init__(self, enclosing=None, control=None, **defaults):
         self.values = {}
         self.qubits = NoopAllocator()
-        self.circuit = Circuit()
         self.enclosing = enclosing
-        if controls == None:
-            self.controls = []
-        else:
-            self.controls = controls
+        self.control = control
         for name, default_value in defaults.items():
             self.set_key_value(name, default_value)
 
@@ -70,8 +66,17 @@ class Environment:
         index = self.qubits.alloc_one()
         return Qubit(index)
 
-    def add_gate(self, gate: Gate):
-        self.circuit.add_gate(gate)
+    def embed_gate(self, gate: Gate) -> List[Gate]:
+        """Embed a block-local gate as a list of gates in the global scope."""
+        if self.control is not None:
+            gates = gate.with_control(self.control)
+        else:
+            gates = [gate]
+        if self.enclosing:
+            enclosing_gates = [self.enclosing.embed_gate(gate) for gate in gates]
+            # flatten this list: TODO better in one list comprehension?
+            gates = [gate for gates_ in enclosing_gates for gate in gates_]
+        return gates
 
     def __getitem__(self, var: Variable):
         # TODO Error handling

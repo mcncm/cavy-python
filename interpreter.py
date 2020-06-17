@@ -1,5 +1,6 @@
 from typing import Any, List
 
+from circuits.circuit import Circuit
 import circuits.gates as gates
 from environment import Environment
 from functions import BUILTINS, Function
@@ -19,6 +20,7 @@ class _TypeError(InterpreterError):
 class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
         self.environment = Environment(**BUILTINS)
+        self.circuit = Circuit()
 
     def visit_binop(self, expr: BinOp) -> Any:
         left = self.evaluate(expr.left)
@@ -39,7 +41,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
         token_type = expr.op.token_type
         if token_type == TokenType.TILDE:
             if isinstance(right, Qubit):
-                self.environment.add_gate(gates.NotGate(right.index))
+                gates_ = self.environment.embed_gate(
+                    gates.NotGate(right.index))
+                self.circuit.add_gates(gates_)
                 return right
             else:
                 return not right
@@ -61,8 +65,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
         args = [self.evaluate(arg) for arg in expr.args]
         if len(args) != callee.arity:
             raise InterpreterError(
-                expr.paren, f"Function takes {callee.arity} arguments; got {len(args)}.")
-        return callee.call(self.environment, args)
+                expr.paren,
+                f"Function takes {callee.arity} arguments; got {len(args)}.")
+        return callee.call(self.environment, self.circuit, args)
 
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
         self.evaluate(stmt.expr)
@@ -81,11 +86,34 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_ifstmt(self, stmt: IfStmt) -> None:
         # TODO decide what must be truthy and what falsey.
-        if self.evaluate(stmt.cond):
-            self.execute(stmt.then_branch)
-            return
-        if (else_branch := stmt.else_branch):
-            self.execute(else_branch)
+        cond_value = self.evaluate(stmt.cond)
+
+        # TODO replace this check with a check on the linearity of the
+        # value's type
+        if isinstance(cond_value, Qubit):
+            if not isinstance(
+                    stmt.cond,
+                    Variable):  # this is my *only* allowed case for now
+                raise NotImplementedError
+            # The visitor pattern is broken here. This seems, though, to be the
+            # easiest way to pass in the control data, and it should be
+            # guaranteed by the parser that this is a block statement.
+            control = cond_value.index
+            self.execute_blockstmt(
+                stmt.then_branch.stmts,
+                Environment(self.environment, control=control))
+            # Re-bind the variable: this is actually the absolutely right way
+            # to do this, because you shouldn't be able to name this value
+            # within the inner scope.
+            self.environment[stmt.cond] = cond_value
+
+        # classical type: this is an "ordinary" `if` statement
+        else:
+            if cond_value:
+                self.execute(stmt.then_branch)
+                return
+            if (else_branch := stmt.else_branch):
+                self.execute(else_branch)
 
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)
