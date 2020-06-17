@@ -113,16 +113,18 @@ class Repl:
                 if line == ':q':
                     print(GOODBYE)
                     break
-                if line == ':h':
+                elif line == ':h':
                     print(HELP)
                     continue
-                if line == ':e':
+                elif line == ':e':
                     # cause an interpreter error
                     raise Exception("Raised a manual error")
-                if line == ':cirq':
+                elif line == ':cirq':
                     # compile and print the circuit with Cirq.
                     self.print_cirq_circuit()
                     continue
+                elif line == ':debug':
+                    breakpoint()
 
                 # now, eval the line
                 lexer = Lexer(line)
@@ -179,7 +181,7 @@ class Repl:
 
     @deps.require('cirq')
     def print_cirq_circuit(self):
-        circuit = self.interpreter.environment.circuit.to_cirq()
+        circuit = self.interpreter.circuit.to_cirq()
         print(circuit)
 
 
