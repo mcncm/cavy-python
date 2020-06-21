@@ -106,7 +106,10 @@ class Repl:
         while True:
             try:
                 print(PROMPT, end='')
-                line = input()
+                try:
+                    line = input()
+                except EOFError:
+                    line = ':q'
                 self.history.append(line)
 
                 # special repl commands
