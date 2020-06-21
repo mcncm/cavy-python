@@ -36,7 +36,10 @@ class TokenType(Enum):
 
     # single-character token types
     PLUS = auto()
+    MINUS = auto()
     STAR = auto()
+    PERCENT = auto()
+    CARET = auto()
     BANG = auto()
     TILDE = auto()
     COMMA = auto()

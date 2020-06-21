@@ -26,7 +26,10 @@ LITERAL_KEYWORDS = {
 # would be nice to come up with a work-around for this.
 SCTOKENS = {
     '+': TokenType.PLUS,
+    '-': TokenType.MINUS,
     '*': TokenType.STAR,
+    '%': TokenType.PERCENT,
+    '^': TokenType.CARET,
     ',': TokenType.COMMA,
     '!': TokenType.BANG,
     ';': TokenType.SEMICOLON,
