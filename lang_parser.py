@@ -10,6 +10,17 @@ from lang_ast import *
 
 MAX_ARGS = 64
 
+# Fields mean: precedence, is_right_associative
+OPERATOR_TABLE = {
+    TokenType.TILDEEQUAL: (1, False),
+    TokenType.EQUALEQUAL: (1, False),
+    TokenType.PLUS:       (2, False),
+    TokenType.MINUS:      (2, False),
+    TokenType.STAR:       (3, False),
+    TokenType.PERCENT:    (3, False),
+    TokenType.CARET:      (4, True),
+}
+
 
 @dataclass
 class ParseError(Exception):
@@ -70,7 +81,7 @@ class Parser:
 
     def match_tokens(self, *token_types: TokenType) -> bool:
         """Advance if the current token is one of this list"""
-        if any([self.check_token(tt) for tt in token_types]):
+        if any(self.check_token(tt) for tt in token_types):
             self.forward()
             return True
         return False
@@ -151,39 +162,30 @@ class Parser:
         return ExprStmt(expr)
 
     def expression(self):
-        return self.equality()
+        lhs = self.unary()
+        return self.parse_precedence_climbing(lhs, 0)
 
-    def equality(self) -> Expression:
-        """Production rule for equality expressions
-        """
-        expr = self.comparison()
-        while self.match_tokens(TokenType.TILDEEQUAL, TokenType.EQUALEQUAL):
-            op = self.prev()
-            right = self.comparison()
-            expr = BinOp(expr, op, right)
-        return expr
-
-    def comparison(self) -> Expression:
-        """Production rule for comparison expressions. We don't yet support these, so
-        they go straight to the next-higher-precedence rule.
-        """
-        return self.addition()
-
-    def addition(self) -> Expression:
-        expr = self.multiplication()
-        while self.match_tokens(TokenType.PLUS):
-            op = self.prev()
-            right = self.multiplication()
-            expr = BinOp(expr, op, right)
-        return expr
-
-    def multiplication(self) -> Expression:
-        expr = self.unary()
-        while self.match_tokens(TokenType.STAR):
-            op = self.prev()
-            right = self.unary()
-            expr = BinOp(expr, op, right)
-        return expr
+    def parse_precedence_climbing(self, lhs, min_precedence):
+        while True:
+            outer_token = self.curr()
+            if outer_token.token_type not in OPERATOR_TABLE:
+                break
+            outer_precedence, _ = OPERATOR_TABLE[outer_token.token_type]
+            if outer_precedence < min_precedence:
+                break
+            self.forward()
+            rhs = self.unary()
+            while True:
+                inner_token = self.curr()
+                if inner_token.token_type not in OPERATOR_TABLE:
+                    break
+                inner_precedence, right_associative = OPERATOR_TABLE[inner_token.token_type]
+                # We break if inner_precedence == outer_precedence and right_associative.
+                if inner_precedence < outer_precedence + (not right_associative):
+                    break
+                rhs = self.parse_precedence_climbing(rhs, inner_precedence)
+            lhs = BinOp(lhs, outer_token, rhs)
+        return lhs
 
     def unary(self) -> Expression:
         if self.match_tokens(TokenType.BANG, TokenType.TILDE):
