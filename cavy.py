@@ -109,7 +109,7 @@ class Repl:
                 try:
                     line = input()
                 except EOFError:
-                    line = ":q"
+                    line = ':q'
                 self.history.append(line)
 
                 # special repl commands
