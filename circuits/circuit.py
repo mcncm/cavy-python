@@ -4,7 +4,6 @@ import dependencies as deps
 from .gates import Gate
 from lang_types import Qubit
 
-
 class Circuit:
     def __init__(self):
         self.gates = []
@@ -24,6 +23,17 @@ class Circuit:
         for gate in self.gates:
             qubits += gate.qubits
         return set(qubits)
+
+    def to_backend(self, backend: Optional[str]):
+       if backend == None:
+           return self
+       elif backend == 'cirq':
+           return self.to_cirq()
+       else:
+           # TODO fix error handling here
+           # Probably make a `Backend` class and move error handling
+           # into its `__init__` method
+           raise ValueError('Invalid backend: {}', backend)
 
     @deps.require('cirq')
     def to_cirq(self):

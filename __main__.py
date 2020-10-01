@@ -27,7 +27,8 @@ You can type ':q' to quit, and ':h' for help.
 """
 
 HELP = """
-TODO
+If you have any problems with the language, or have any questions,
+feel free to open an issue at
 """
 
 GOODBYE = """

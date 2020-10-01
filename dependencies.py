@@ -1,6 +1,10 @@
+"""This module is included to allow lazy-loading of dependencies that may be
+required for individual functions, which may be (for example) backend-dependent.
+"""
+
 import importlib
 from functools import wraps
-from typing import Callable, Any
+from typing import Callable, Any, List
 
 from errors import CavyRuntimeError
 
@@ -20,23 +24,27 @@ class MissingDependencyError(CavyRuntimeError):
         return f"Error: this feature requires the missing dependency '{dep}'."
 
 
-for dep in DEPENDENCIES:
+def load_dependency(dep):
     try:
         globals()[dep] = importlib.import_module(dep)
         LOADED_DEPENDENCIES.add(dep)
-    except ModuleNotFoundError:
-        pass
+    except ModuleNotFoundError as e:
+        raise e
 
 
-def require(dep: str) -> Callable:
+def require(*deps: List[str]) -> Callable:
+    """Annotation for a function that requires a dependency.
+    This dependency is lazy-loaded the first time it's used.
+    """
     def require_dep(fn: Callable) -> Callable:
         @wraps(fn)
         def wrapped(*args, **kwargs) -> Any:
-            if dep not in LOADED_DEPENDENCIES:
-                raise MissingDependencyError(dep)
-            else:
-                return fn(*args, **kwargs)
-
+            for dep in deps:
+                if dep not in LOADED_DEPENDENCIES:
+                    try:
+                        load_dependency(dep)
+                    except ModuleNotFoundError as e:
+                        raise MissingDependencyError(dep)
+            return fn(*args, **kwargs)
         return wrapped
-
     return require_dep
