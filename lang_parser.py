@@ -188,7 +188,7 @@ class Parser:
         return lhs
 
     def unary(self) -> Expression:
-        if self.match_tokens(TokenType.BANG, TokenType.TILDE):
+        if self.match_tokens(TokenType.QUESTION, TokenType.BANG, TokenType.TILDE):
             op = self.prev()
             right = self.unary()
             return UnOp(op, right)

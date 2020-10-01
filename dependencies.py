@@ -14,7 +14,6 @@ DEPENDENCIES = {
 
 LOADED_DEPENDENCIES = set()
 
-
 class MissingDependencyError(CavyRuntimeError):
     def __init__(self, dep):
         assert dep in DEPENDENCIES
@@ -24,12 +23,20 @@ class MissingDependencyError(CavyRuntimeError):
         return f"Error: this feature requires the missing dependency '{dep}'."
 
 
-def load_dependency(dep):
+def load_dependency(dep: str):
     try:
         globals()[dep] = importlib.import_module(dep)
         LOADED_DEPENDENCIES.add(dep)
     except ModuleNotFoundError as e:
         raise e
+
+
+def dependency_version(dep: str) -> str:
+    """Try to get the version of a loaded dependency"""
+    if dep not in LOADED_DEPENDENCIES:
+        return "Not loaded"
+    mod = globals()[dep]
+    return getattr(mod, '__version__', 'No version found')
 
 
 def require(*deps: List[str]) -> Callable:

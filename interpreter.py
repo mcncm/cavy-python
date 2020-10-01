@@ -37,8 +37,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_unop(self, expr: UnOp) -> Any:
         right = self.evaluate(expr.right)
-
         token_type = expr.op.token_type
+
         if token_type == TokenType.TILDE:
             if isinstance(right, Qubit):
                 gates_ = self.environment.embed_gate(
@@ -47,6 +47,25 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 return right
             else:
                 return not right
+
+        elif token_type == TokenType.QUESTION:
+            if isinstance(right, bool):
+                # Stack-allocate a brand new qubit
+                qubit = self.environment.alloc_one()
+                if right:
+                    gates_ = self.environment.embed_gate(
+                        gates.NotGate(qubit.index)
+                    )
+                    self.circuit.add_gates(gates_)
+                return qubit
+            else:
+                breakpoint()
+                # TODO Figure out how to get a location out of expr
+                raise InterpreterError(
+                    0,
+                    f"The value '{right}' cannot be linearized."
+                )
+
 
     def visit_literal(self, expr: Literal) -> Any:
         return expr.literal.data

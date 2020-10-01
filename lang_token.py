@@ -40,6 +40,7 @@ class TokenType(Enum):
     STAR = auto()
     PERCENT = auto()
     CARET = auto()
+    QUESTION = auto()
     BANG = auto()
     TILDE = auto()
     COMMA = auto()

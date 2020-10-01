@@ -31,6 +31,7 @@ SCTOKENS = {
     '%': TokenType.PERCENT,
     '^': TokenType.CARET,
     ',': TokenType.COMMA,
+    '?': TokenType.QUESTION,
     '!': TokenType.BANG,
     ';': TokenType.SEMICOLON,
     '[': TokenType.LBRACKET,

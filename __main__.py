@@ -170,6 +170,11 @@ class Repl:
         report = {
             'history': self.history,
             'commit': git_commit(),
+            'py_version': sys.version,
+            'dependency_versions': {
+                dep: deps.dependency_version(dep)
+                    for dep in deps.LOADED_DEPENDENCIES
+            },
             'error': str(err),
             'traceback': stack_trace(err),
             'timestamp': str(datetime.datetime.now()),
