@@ -6,17 +6,17 @@ from lang_token import Location, Token, TokenType
 
 # Reserved keywords. This dictionary controls lexer support for these tokens.
 KEYWORDS = {
-    'if': TokenType.IF,
-    'else': TokenType.ELSE,
-    'for': TokenType.FOR,
-    'fn': TokenType.FN,
-    'reg': TokenType.REG,
+    'if':    TokenType.IF,
+    'else':  TokenType.ELSE,
+    'for':   TokenType.FOR,
+    'fn':    TokenType.FN,
+    'reg':   TokenType.REG,
     'print': TokenType.PRINT,
 }
 
 # Keywords that are also literal values.
 LITERAL_KEYWORDS = {
-    'true': (TokenType.BOOL, True),
+    'true':  (TokenType.BOOL, True),
     'false': (TokenType.BOOL, False),
 }
 

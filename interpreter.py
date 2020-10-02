@@ -3,7 +3,7 @@ from typing import Any, List
 from circuits.circuit import Circuit
 import circuits.gates as gates
 from environment import Environment
-from functions import BUILTINS, Function
+from functions import BUILTINS, AbstractFunction, Function
 from lang_ast import *
 from lang_token import TokenType
 from lang_types import Qubit
@@ -66,6 +66,17 @@ class Interpreter(ExprVisitor, StmtVisitor):
                     f"The value '{right}' cannot be linearized."
                 )
 
+        elif token_type == TokenType.BANG:
+            # TODO Need measurement operator
+            if isinstance(right, Qubit):
+                pass
+                return False;
+            else:
+                # TODO Figure out how to get a location out of expr
+                raise InterpreterError(
+                    0,
+                    f"The value '{right}' cannot be delinearized"
+                )
 
     def visit_literal(self, expr: Literal) -> Any:
         return expr.literal.data
@@ -79,14 +90,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_call(self, expr: Call) -> Any:
         callee = self.evaluate(expr.callee)
-        if not isinstance(callee, Function):
+        if not isinstance(callee, AbstractFunction):
             raise _TypeError(f"{callee} not a function")
         args = [self.evaluate(arg) for arg in expr.args]
         if len(args) != callee.arity:
             raise InterpreterError(
                 expr.paren,
                 f"Function takes {callee.arity} arguments; got {len(args)}.")
-        return callee.call(self.environment, self.circuit, args)
+        return callee.call(self, args)
 
     def visit_exprstmt(self, stmt: ExprStmt) -> None:
         self.evaluate(stmt.expr)
@@ -133,6 +144,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 return
             if (else_branch := stmt.else_branch):
                 self.execute(else_branch)
+
+    def visit_fnstmt(self, stmt: FnStmt) -> None:
+        """Define a function!
+        """
+        self.environment[Variable(stmt.name)] = Function(stmt.params, stmt.body)
 
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)

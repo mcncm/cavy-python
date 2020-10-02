@@ -26,9 +26,10 @@ We hope that you enjoy your stay.
 You can type ':q' to quit, and ':h' for help.
 """
 
-HELP = """
+HELP = f"""
 If you have any problems with the language, or have any questions,
-feel free to open an issue at
+feel free to open an issue at '{config.REPO_URL}'
+or email the developer at '{config.HELP_ADDRESS}'
 """
 
 GOODBYE = """
@@ -114,20 +115,20 @@ class Repl:
                 self.history.append(line)
 
                 # special repl commands
-                if line == ':q':
+                if line in [':q', ':quit']:
                     print(GOODBYE)
                     break
-                elif line == ':h':
+                elif line in [':h', ':help']:
                     print(HELP)
                     continue
-                elif line == ':e':
+                elif line in [':e', ':error']:
                     # cause an interpreter error
                     raise Exception("Raised a manual error")
                 elif line == ':cirq':
                     # compile and print the circuit with Cirq.
                     self.print_cirq_circuit()
                     continue
-                elif line == ':debug':
+                elif self.debug and line in [':d', ':debug']:
                     breakpoint()
 
                 # now, eval the line

@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Any
 
 
 class CavyType:
@@ -24,3 +25,8 @@ class Qubit(CavyType):
 
     def __hash__(self) -> int:
         return hash(self.index)
+
+
+class Result(CavyType):
+    def __init__(self, val: Any):
+        self.val = val

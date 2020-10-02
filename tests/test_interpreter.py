@@ -73,3 +73,13 @@ def test_reassignment_2():
 
 def test_variable_arithmetic():
     stmt_test_template('x <- 3; y <- 4; print 3 * 4;', ['12'])
+
+def test_simple_function_definition():
+    stmt_test_template("""
+        fn printTwice(x) {
+            print(x);
+            print(x);
+        }
+
+        printTwice(4);
+    """, ['4', '4'])

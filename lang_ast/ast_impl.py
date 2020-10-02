@@ -91,6 +91,11 @@ STMT_NODES = {
         'then_branch': Statement,
         'else_branch': Statement,
     },
+    'FnStmt': {
+        'name': Token,
+        'params': List[Token],
+        'body': Statement,
+    },
 }
 
 # Generate the expression node classes

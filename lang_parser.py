@@ -107,10 +107,35 @@ class Parser:
         try:
             if self.match_token_sequence(TokenType.IDENT, TokenType.LESSMINUS):
                 return self.assignment()
+            elif self.match_token_sequence(TokenType.FN, TokenType.IDENT):
+                return self.function_definition()
             return self.statement()
         except ParseError as err:
             self.errors.append((err.token, err.message))
             self.synchronize()
+
+    def function_definition(self) -> Statement:
+       name =  self.tokens[self.pos - 1]
+       params = []
+
+       self.consume(TokenType.LPAREN,
+                    "expected '(' at beginning of function parameters")
+
+       if not self.check_token(TokenType.RPAREN):
+           while True:
+               param = self.consume(TokenType.IDENT,
+                                    "expected identifier as function parameter")
+               params.append(param)
+               if not self.match_tokens(TokenType.COMMA):
+                   break
+       paren = self.consume(TokenType.RPAREN,
+                            "missing ')' at end of arguments")
+
+       self.consume(TokenType.LBRACE,
+                    "missing '{' opening function body")
+
+       body = self.block_statement()
+       return FnStmt(name, params, body)
 
     def statement(self) -> Statement:
         if self.match_tokens(TokenType.IF):
@@ -233,7 +258,7 @@ class Parser:
             if self.prev().token_type == TokenType.SEMICOLON:
                 return
 
-        barriers = ['IF', 'FOR', 'FN']
+        barriers = [TokenType.IF, TokenType.FOR, TokenType.FN]
         if self.curr().token_type in barriers:
             return
         self.forward()
