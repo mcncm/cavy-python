@@ -40,3 +40,36 @@ class Circuit:
         qubits = [deps.cirq.GridQubit(i, 0) for i in self.all_qubits()]
         cirq_gates = [gate.to_cirq(qubits) for gate in self.gates]
         return deps.cirq.Circuit(*cirq_gates)
+
+    def to_qasm(self):
+        """Transform this circuit to a QASM string representation. For the time being,
+        we'll rely on Cirq as an intermediate representation. In a future
+        version, I'd ideally prefer not to.
+
+        """
+        circuit = self.to_cirq()
+        return deps.cirq.qasm(circuit)
+
+    @deps.require('__unsatisfiable__')
+    def __to_qasm_native(self):
+        """Transform this circuit to a QASM string representation
+        TODO implement this!
+        """
+        raise NotImplementedError
+
+    @deps.require('labber')
+    def to_labber(self):
+        """Transform this circuit to a Labber circuit that can be run
+        on a physical machine.
+        TODO implement this!
+        """
+        raise NotImplementedError
+
+    @deps.require('cirq', 'pylatex')
+    def to_diagram(self, filepath: str) -> None:
+        to_latex = deps.cirq.contrib.qcircuit.circuit_to_latex_using_qcircuit
+        breakpoint()
+        circuit = self.to_cirq()
+        latex_src = to_latex(circuit, circuit.all_qubits())
+        with open(filepath, 'w') as f:
+            f.write(latex_src)

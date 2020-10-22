@@ -124,9 +124,14 @@ class Repl:
                 elif line in [':e', ':error']:
                     # cause an interpreter error
                     raise Exception("Raised a manual error")
-                elif line == ':cirq':
+                elif (line_args := line.split())[0] == ':cirq':
                     # compile and print the circuit with Cirq.
-                    self.print_cirq_circuit()
+                    self.print_cirq_circuit(*line_args[1:])
+                    continue
+                elif self.debug and (line_args := line.split())[0] == ':qasm':
+                    # compile and print the circuit as QASM.
+                    circuit = self.interpreter.circuit
+                    print(circuit.to_qasm())
                     continue
                 elif self.debug and line in [':d', ':debug']:
                     breakpoint()
@@ -189,11 +194,18 @@ class Repl:
         with open(config.CRASHLOG, 'w') as f:
             json.dump(logs, f)
 
-    @deps.require('cirq')
-    def print_cirq_circuit(self):
-        circuit = self.interpreter.circuit.to_cirq()
-        print(circuit)
+    def print_cirq_circuit(self, *args):
+        """Either print a cirq circuit to stdout, or convert it to LaTeX and write it to
+        a file.
 
+        TODO debug this function
+        """
+        circuit = self.interpreter.circuit
+        if len(args) == 0:
+            print(circuit.to_cirq())
+        else:
+            filename = args[0]
+            circuit.to_diagram(filename)
 
 def interpret_script(script_path: str):
     with open(script_path, 'r') as f:
