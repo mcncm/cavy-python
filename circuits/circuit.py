@@ -29,6 +29,8 @@ class Circuit:
            return self
        elif backend == 'cirq':
            return self.to_cirq()
+       elif backend == 'diagram':
+           return self.to_diagram()
        else:
            # TODO fix error handling here
            # Probably make a `Backend` class and move error handling
@@ -66,10 +68,9 @@ class Circuit:
         raise NotImplementedError
 
     @deps.require('cirq', 'pylatex')
-    def to_diagram(self, filepath: str) -> None:
+    def to_diagram(self) -> str:
+        """Returns latex source for a circuit diagram
+        """
         to_latex = deps.cirq.contrib.qcircuit.circuit_to_latex_using_qcircuit
-        breakpoint()
         circuit = self.to_cirq()
-        latex_src = to_latex(circuit, circuit.all_qubits())
-        with open(filepath, 'w') as f:
-            f.write(latex_src)
+        return to_latex(circuit, circuit.all_qubits())

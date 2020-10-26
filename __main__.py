@@ -204,8 +204,9 @@ class Repl:
         if len(args) == 0:
             print(circuit.to_cirq())
         else:
-            filename = args[0]
-            circuit.to_diagram(filename)
+            raise NotImplementedError
+            # filename = args[0]
+            # circuit.to_diagram(filename)
 
 def interpret_script(script_path: str):
     with open(script_path, 'r') as f:

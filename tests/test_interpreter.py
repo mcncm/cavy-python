@@ -5,6 +5,7 @@ from lang_parser import Parser
 from contextlib import redirect_stdout
 from io import StringIO
 
+import pytest
 
 def expr_test_template(code, value_expected):
     """Generates a test case comparing the AST produced by the parser with a
@@ -38,11 +39,18 @@ def test_neq():
     expr_test_template("true ~= false", True)
 
 
-def stmt_test_template(code, trace_expected):
+def stmt_test_template(code, trace_expected, exception=None):
+    """
+    Here 'exception' is either None, or an expected exception type.
+    """
     statements = Parser(Lexer(code).lex()).parse()
     output = StringIO()
     with redirect_stdout(output):
-        Interpreter().interpret(statements)
+        if exception is None:
+            Interpreter().interpret(statements)
+        else:
+            with pytest.raises(exception):
+                Interpreter().interpret(statements)
     trace_actual = output.getvalue().split()
     assert trace_actual == trace_expected
 

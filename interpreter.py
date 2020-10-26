@@ -19,7 +19,7 @@ class _TypeError(InterpreterError):
 
 class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
-        self.environment = Environment(**BUILTINS)
+        self.environment = Environment(defaults=BUILTINS)
         self.circuit = Circuit()
 
     def visit_binop(self, expr: BinOp) -> Any:
@@ -34,6 +34,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
             return left == right
         elif token_type == TokenType.TILDEEQUAL:
             return left != right
+        elif token_type == TokenType.STOPSTOP:
+            return range(left, right)
 
     def visit_unop(self, expr: UnOp) -> Any:
         right = self.evaluate(expr.right)
@@ -144,6 +146,17 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 return
             if (else_branch := stmt.else_branch):
                 self.execute(else_branch)
+
+    def visit_forstmt(self, stmt: ForStmt) -> None:
+        # TODO linear iterators
+        binder = stmt.binder.data
+        iterator = stmt.iterator
+        for iter_val in self.evaluate(iterator):
+            self.execute_blockstmt(
+                stmt.body.stmts,
+                Environment(self.environment, defaults={binder: iter_val})
+            )
+
 
     def visit_fnstmt(self, stmt: FnStmt) -> None:
         """Define a function!

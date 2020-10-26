@@ -12,6 +12,7 @@ class QubitState:
 
 
 class Qubit(CavyType):
+
     def __init__(self, index: int):
         assert index >= 0
         self.index = index

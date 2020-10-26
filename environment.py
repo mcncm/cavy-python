@@ -13,8 +13,14 @@ class UnboundNameError(CavyRuntimeError):
     """Raised when a name is referenced that is not bound to anything in the
     current scope."""
     def __str__(self):
-        return f"Unbound name error: either '{self.args[0]}' has not been "\
-               "assigned, or its contents have been moved."
+        return f"Unbound name error: '{self.args[0]}' has not been assigned a value."
+
+
+class MovedValueError(CavyRuntimeError):
+    """Raised when a name is referenced that is not bound to anything in the
+    current scope."""
+    def __str__(self):
+        return f"Moved value error: '{self.args[0]}' has been moved."
 
 
 class NoopAllocator:
@@ -39,13 +45,14 @@ class NoopAllocator:
 
 
 class Environment:
-    def __init__(self, enclosing=None, control=None, **defaults):
+    def __init__(self, enclosing=None, control=None, defaults=None):
         self.values = {}
         self.qubits = NoopAllocator()
         self.enclosing = enclosing
         self.control = control
-        for name, default_value in defaults.items():
-            self.set_key_value(name, default_value)
+        if defaults is not None:
+            for name, default_value in defaults.items():
+                self.set_key_value(name, default_value)
 
     def __setitem__(self, var: Variable, value: Any):
         # var.name.data contains the actual variable name string
@@ -85,8 +92,20 @@ class Environment:
             value = self.values[name]
             # The value is a quantum state: remove it from the environment!
             if isinstance(value, Qubit):
-                self.values.pop(name)
-                return value
+                # Instead of popping the value, we'll replace it with a special
+                # sigil ('None') that otherwise has no meaning / isn't a valid
+                # value in the language. This should allow for more sensible
+                # assignment semantics with nested scope.
+                #
+                # Note that we're not using the environment's `get` method:
+                # 'None' is a special symbol indicating a moved value, not an
+                # unbound name.
+                value = self.values[name]
+                if value is not None:
+                    self.values[name] = None
+                    return value
+                else:
+                    raise MovedValueError(name)
             else:
                 return value
         except KeyError as err:

@@ -14,11 +14,12 @@ MAX_ARGS = 64
 OPERATOR_TABLE = {
     TokenType.TILDEEQUAL: (1, False),
     TokenType.EQUALEQUAL: (1, False),
-    TokenType.PLUS:       (2, False),
-    TokenType.MINUS:      (2, False),
-    TokenType.STAR:       (3, False),
-    TokenType.PERCENT:    (3, False),
-    TokenType.CARET:      (4, True),
+    TokenType.STOPSTOP:   (2, False),
+    TokenType.PLUS:       (3, False),
+    TokenType.MINUS:      (3, False),
+    TokenType.STAR:       (4, False),
+    TokenType.PERCENT:    (4, False),
+    TokenType.CARET:      (5, True),
 }
 
 
@@ -140,6 +141,8 @@ class Parser:
     def statement(self) -> Statement:
         if self.match_tokens(TokenType.IF):
             return self.if_statement()
+        elif self.match_tokens(TokenType.FOR):
+            return self.for_statement()
         elif self.match_tokens(TokenType.PRINT):
             return self.print_statement()
         elif self.match_tokens(TokenType.LBRACE):
@@ -168,6 +171,15 @@ class Parser:
         else:
             else_branch = None
         return IfStmt(condition, then_branch, else_branch)
+
+    def for_statement(self) -> ForStmt:
+        binder = self.consume(TokenType.IDENT, "Expected an identifier to bind 'for' statement")
+        self.consume(TokenType.IN, "Expected 'in' in 'for' statement")
+        iterator = self.expression()
+        self.consume(TokenType.LBRACE,
+                     "missing '{' opening loop body")
+        body = self.block_statement()
+        return ForStmt(binder, iterator, body)
 
     def print_statement(self) -> PrintStmt:
         value = self.expression()

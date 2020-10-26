@@ -59,7 +59,7 @@ def test_two_split():
     )
 
 
-def test_phase_gate():
+def test_not_gate():
     circuit_test_template(
         "q <- ~qubit();",
         [(gates.NotGate, [0])]
@@ -70,4 +70,15 @@ def test_phase_gate():
     circuit_test_template(
         "q <- split(qubit()); r <- phase(q);",
         [(gates.HadamardGate, [0]), (gates.PhaseGate, [0])]
+    )
+
+def test_cnot_gate():
+    circuit_test_template("""
+        q <- ?false;
+        r <- ?false;
+        if q {
+            r <- ~r;
+        }
+        """,
+        [(gates.CnotGate, [0, 1])]
     )
