@@ -3,12 +3,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import dependencies as deps
+from circuits.sample import Sample
 
 
 class Backend(ABC):
 
     @abstractmethod
-    def sample_circuit(self, circuit, reps: int) -> Dict[str, Any]:
+    def sample_circuit(self, circuit, reps: int) -> Sample:
         pass
 
 
@@ -20,10 +21,13 @@ class CirqBackend(Backend):
     def __init__(self):
         pass
 
-    def sample_circuit(self, circuit, reps: int) -> Dict[str, Any]:
-        samples = deps.cirq.sample(circuit.to_cirq(),
+    def sample_circuit(self, circuit, reps: int) -> Sample:
+        def meas_index(measurements, i: int):
+            return measurements.get(str((i, 0))).transpose()[0]
+        results = deps.cirq.sample(circuit.to_cirq(),
                                    dtype=bool,
                                    repetitions=reps)
-        results = samples.measurements
-        return {label: results.get(str((index, 0))).transpose()[0]
-                for (label, index) in circuit.qubit_labels.items()}
+        samples = {label: meas_index(results.measurements, index)
+                    for (label, index) in circuit.qubit_labels.items()}
+
+        return Sample(samples)
