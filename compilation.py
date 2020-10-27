@@ -8,11 +8,10 @@ from lang_parser import Parser
 from lexer import Lexer
 from errors import CavyRuntimeError
 
-def compile(source: str, backend=None, opt: int = 0):
-    """This function can be used to compile Cavy source to a chosen backend."""
-    lexer = Lexer(source)
-    interpreter = Interpreter()
-    try:
+class Program:
+
+    def __init__(self, source: str):
+        lexer = Lexer(source)
         tokens = lexer.lex()
         if (errors := lexer.errors):
             for err in errors:
@@ -21,14 +20,19 @@ def compile(source: str, backend=None, opt: int = 0):
         parser = Parser(tokens)
         #
         # parse the line as a statement
-        stmts = parser.parse()
-        if not stmts:
+        self.stmts = parser.parse()
+        if not self.stmts:
             for err in parser.errors:
                 # TODO this is temporarily here so I can see what’s in `errors`
                 breakpoint()
-        interpreter.interpret(stmts)
-    except CavyRuntimeError as err:
-        print(err)
 
-    circuit = interpreter.circuit
-    return circuit.to_backend(backend)
+    def compile(self) -> Circuit:
+        """Note that we are somewhat mixing notions of 'compile-time' and 'runtime'.
+        This method transforms the AST into Pycavy's Circuit data structure.
+        """
+        interpreter = Interpreter()
+        try:
+            interpreter.interpret(self.stmts)
+        except CavyRuntimeError as err:
+            print(err)
+        return interpreter.circuit

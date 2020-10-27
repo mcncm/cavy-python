@@ -1,4 +1,4 @@
-from typing import Set, List, Optional
+from typing import Set, List, Optional, Dict, Any
 
 import dependencies as deps
 from .gates import Gate
@@ -7,6 +7,7 @@ from lang_types import Qubit
 class Circuit:
     def __init__(self):
         self.gates = []
+        self.qubit_labels = {}
 
     # def add_gate(self, gate: Gate, control: Optional[Qubit] = None):
     #     if control:
@@ -36,6 +37,11 @@ class Circuit:
            # Probably make a `Backend` class and move error handling
            # into its `__init__` method
            raise ValueError('Invalid backend: {}', backend)
+
+    def sample(self, backend, reps: int = 1) -> Dict[str, Any]:
+        """Sample the circuit on all-zero input using a given backend"""
+        assert reps >= 1
+        return backend.sample_circuit(self, reps)
 
     @deps.require('cirq')
     def to_cirq(self):

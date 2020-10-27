@@ -6,7 +6,7 @@ from circuits.gates import Gate
 from errors import CavyRuntimeError
 from lang_token import Token
 from lang_ast import Variable
-from lang_types import Qubit
+from lang_types import Qubit, QubitMeasurement
 
 
 class UnboundNameError(CavyRuntimeError):
@@ -108,7 +108,7 @@ class Environment:
                     raise MovedValueError(name)
             else:
                 return value
-        except KeyError as err:
+        except KeyError:
             if (encl := self.enclosing):
                 return encl[var]
             else:

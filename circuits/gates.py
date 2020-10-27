@@ -17,6 +17,22 @@ class Gate:
         return [Gate([])]
 
 
+class StrongMeasurementGate(Gate):
+    """A strong measurement; that is, the "ordinary" sort usually seen in circuit
+    diagrams.
+    """
+
+    arity = 1
+
+    @deps.require('cirq')
+    def to_cirq(self, qubits):
+        return deps.cirq.measure(qubits[self.qubits[0]])
+
+    def with_control(self, control: int) -> List[Gate]:
+        # TODO I'm not *quite* sure what to do here, to tell the truth.
+        raise NotImplementedError
+
+
 class NotGate(Gate):
     arity = 1
 

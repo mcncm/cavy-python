@@ -66,6 +66,8 @@ class ScanHead:
             return self.code[self.pos]
         except IndexError:
             return None
+        except Exception:
+            breakpoint()
 
     def forward(self) -> None:
         """Advance by one character"""

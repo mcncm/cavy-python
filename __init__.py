@@ -8,4 +8,5 @@ import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-from compile import compile
+from compilation import Program
+import circuits.backends as backends

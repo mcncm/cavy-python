@@ -6,7 +6,7 @@ from environment import Environment
 from functions import BUILTINS, AbstractFunction, Function
 from lang_ast import *
 from lang_token import TokenType
-from lang_types import Qubit
+from lang_types import Qubit, QubitMeasurement
 
 
 class InterpreterError(Exception):
@@ -61,7 +61,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
                     self.circuit.add_gates(gates_)
                 return qubit
             else:
-                breakpoint()
                 # TODO Figure out how to get a location out of expr
                 raise InterpreterError(
                     0,
@@ -69,10 +68,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 )
 
         elif token_type == TokenType.BANG:
-            # TODO Need measurement operator
             if isinstance(right, Qubit):
-                pass
-                return False;
+                gates_ = self.environment.embed_gate(
+                    gates.StrongMeasurementGate(right.index)
+                )
+                self.circuit.add_gates(gates_)
+                return QubitMeasurement(right.index)
             else:
                 # TODO Figure out how to get a location out of expr
                 raise InterpreterError(
@@ -111,6 +112,15 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visit_assnstmt(self, stmt: AssnStmt) -> None:
         value = self.evaluate(stmt.rhs)
         self.environment[Variable(stmt.lhs)] = value
+
+        # NOTE We now need to pass some extra information into the circuit if this is
+        # a measurement result. If we sample from the circuit, we’d like the
+        # sampled values to be mapped to the names of variables containing
+        # results in this program. This feels pretty kludgy to me, but for the
+        # time being I’m not sure there’s a substantially cleaner way to
+        # accomplish it.
+        if isinstance(value, QubitMeasurement):
+            self.circuit.qubit_labels[stmt.lhs.data] = value.index
 
     def visit_blockstmt(self, stmt: BlockStmt) -> None:
         self.execute_blockstmt(stmt.stmts, Environment(self.environment))
@@ -156,7 +166,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 stmt.body.stmts,
                 Environment(self.environment, defaults={binder: iter_val})
             )
-
 
     def visit_fnstmt(self, stmt: FnStmt) -> None:
         """Define a function!
