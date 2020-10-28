@@ -100,24 +100,21 @@ class Environment:
         name = var.name.data
         try:
             value = self.values[name]
-            # The value is a quantum state: remove it from the environment!
-            if isinstance(value, Qubit):
-                # Instead of popping the value, we'll replace it with a special
-                # sigil ('None') that otherwise has no meaning / isn't a valid
-                # value in the language. This should allow for more sensible
-                # assignment semantics with nested scope.
-                #
-                # Note that we're not using the environment's `get` method:
-                # 'None' is a special symbol indicating a moved value, not an
-                # unbound name.
-                value = self.values[name]
-                if value is not None:
+            if value is not None:
+                if isinstance(value, Qubit):
+                    # The value is a quantum state: remove it from the environment!
+                    # Instead of popping the value, we'll replace it with a special
+                    # sigil ('None') that otherwise has no meaning / isn't a valid
+                    # value in the language. This should allow for more sensible
+                    # assignment semantics with nested scope.
+                    #
+                    # Note that we're not using the environment's `get` method:
+                    # 'None' is a special symbol indicating a moved value, not an
+                    # unbound name.
                     self.values[name] = None
-                    return value
-                else:
-                    raise MovedValueError(name)
-            else:
                 return value
+            else:
+                raise MovedValueError(name)
         except KeyError:
             if (encl := self.enclosing):
                 return encl[var]
