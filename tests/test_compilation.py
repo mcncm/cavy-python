@@ -29,17 +29,15 @@ def test_two_qubit_grover():
         //// Note that this function closes over its enclosing environment.
         fn oracle() {
             if q1 {
-                q2 <- phase(q2);
+                q2 <- flip(q2);
             }
         }
 
         fn diffuse() {
-            q1 <- phase(split(q1));
-            q2 <- ~q2;
-            if q1 {
+            q1 <- ~q1;
+            if split(~q1) {
                 q2 <- ~q2;
             }
-            q1 <- split(q1);
         }
 
         for i in 0..1 {

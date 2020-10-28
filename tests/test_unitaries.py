@@ -26,8 +26,8 @@ def test_not():
     unitary_test_template("q <- ~qubit();", np.array([[0, 1], [1, 0]]))
 
 
-def test_phase():
-    unitary_test_template("q <- phase(qubit());", np.array([[1, 0], [0, -1]]))
+def test_z_gate():
+    unitary_test_template("q <- flip(qubit());", np.array([[1, 0], [0, -1]]))
 
 
 def test_hadamard():

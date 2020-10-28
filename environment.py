@@ -86,6 +86,16 @@ class Environment:
         return gates
 
     def __getitem__(self, var: Variable):
+        # NOTE I’ve added an inner method because, as a temporary hack, I’m
+        # monkeypatching methods of Environment and Circuit to temporarily
+        # extend their functionality in a contravariant evaluation context.
+        # Magic methods like __getitem__ cannot be monkeypatched, hence the
+        # indirection. This is *not* the way I wan to implement contravariant
+        # evaluation. The language fighting me is a pretty good indication that
+        # it isn’t how it *should* be done, either.
+        return self._getitem(var)
+
+    def _getitem(self, var: Variable):
         # TODO Error handling
         name = var.name.data
         try:

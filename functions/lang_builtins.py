@@ -23,13 +23,13 @@ class Split(AbstractFunction):
         return qubit
 
 
-class Phase(AbstractFunction):
+class Flip(AbstractFunction):
     """Implements a logical phase gate on a single qubit"""
     arity = 1
 
     def call(self, interp, args) -> Qubit:
         qubit = args[0]
-        gates_ = interp.environment.embed_gate(gates.PhaseGate(qubit.index))
+        gates_ = interp.environment.embed_gate(gates.ZGate(qubit.index))
         interp.circuit.add_gates(gates_)
         return qubit
 

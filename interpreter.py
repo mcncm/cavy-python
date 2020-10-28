@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from typing import Any, List
 
 from circuits.circuit import Circuit
@@ -127,35 +128,30 @@ class Interpreter(ExprVisitor, StmtVisitor):
         return None
 
     def visit_ifstmt(self, stmt: IfStmt) -> None:
-        # TODO decide what must be truthy and what falsey.
-        cond_value = self.evaluate(stmt.cond)
+        with self.coevaluate(stmt.cond) as cond_value:
+            # TODO replace this check with a check on the linearity of the
+            # value's type
+            if isinstance(cond_value, Qubit):
+                # if not isinstance(
+                #         stmt.cond,
+                #         Variable):  # this is my *only* allowed case for now
+                #     raise NotImplementedError
 
-        # TODO replace this check with a check on the linearity of the
-        # value's type
-        if isinstance(cond_value, Qubit):
-            if not isinstance(
-                    stmt.cond,
-                    Variable):  # this is my *only* allowed case for now
-                raise NotImplementedError
-            # The visitor pattern is broken here. This seems, though, to be the
-            # easiest way to pass in the control data, and it should be
-            # guaranteed by the parser that this is a block statement.
-            control = cond_value.index
-            self.execute_blockstmt(
-                stmt.then_branch.stmts,
-                Environment(self.environment, control=control))
-            # Re-bind the variable: this is actually the absolutely right way
-            # to do this, because you shouldn't be able to name this value
-            # within the inner scope.
-            self.environment[stmt.cond] = cond_value
+                # The visitor pattern is broken here. This seems, though, to be the
+                # easiest way to pass in the control data, and it should be
+                # guaranteed by the parser that this is a block statement.
+                control = cond_value.index
+                self.execute_blockstmt(
+                    stmt.then_branch.stmts,
+                    Environment(self.environment, control=control))
 
-        # classical type: this is an "ordinary" `if` statement
-        else:
-            if cond_value:
-                self.execute(stmt.then_branch)
-                return
-            if (else_branch := stmt.else_branch):
-                self.execute(else_branch)
+            # classical type: this is an "ordinary" `if` statement
+            else:
+                if cond_value:
+                    self.execute(stmt.then_branch)
+                    return
+                if (else_branch := stmt.else_branch):
+                    self.execute(else_branch)
 
     def visit_forstmt(self, stmt: ForStmt) -> None:
         # TODO linear iterators
@@ -174,6 +170,65 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)
+
+
+    @contextmanager
+    def coevaluate(self, expr: Expression) -> Any:
+        """This method allows code to be evaluated 'passively,' 'contravariantly,' or
+        'as a change of basis'.
+
+        NOTE This implementation is experimental and *extremely ugly.* It feels
+        like a *terrible* antipattern to monkey patch the circuit and
+        environment methods. Even worse, Python 3 doesn't want to let you monkey
+        patch magic methods like __getitem__, and for this reason I've added a
+        layer of indirection, with an inner '_getitem' method on Environment. I
+        *really* have to implement this in a less offensive way. However, I do
+        like using a contextmanager for it, and would like to also use a
+        contextmanager for the *body* of an 'if' statement.
+
+        NOTE 'coevaluate' might mean something else to PLT people: something
+        about codata?
+
+        """
+
+        basis_transformation = []
+        bindings = []
+        add_gates_old = self.circuit.add_gates
+        getitem_old = self.environment._getitem
+
+        def add_gates_new(gates):
+            # Just collect the active transformation; don’t apply it yet!
+            nonlocal basis_transformation
+            basis_transformation += gates
+
+        def getitem_new(var):
+            value = getitem_old(var)
+            # TODO I also need a better way to check for linearity -- this
+            # doesn’t cut it, and won’t cut it when I have more complicated
+            # linear data structures.
+            if isinstance(value, Qubit):
+                bindings.append((var, value))
+            return value
+
+        self.circuit.add_gates = add_gates_new
+        self.environment._getitem = getitem_new
+        val = self.evaluate(expr)
+        self.environment._getitem = getitem_old
+        self.circuit.add_gates = add_gates_old
+
+        # Having collected the transformation gates, we time-reverse and apply
+        # them.
+        inv = [gate.conjugate() for gate in reversed(basis_transformation)]
+        self.circuit.add_gates(inv)
+
+        try:
+            yield val
+
+        finally:
+            self.circuit.add_gates(basis_transformation)
+            # After uncomputing the basis change, re-bind names that were used
+            for name, value in bindings:
+                self.environment[name] = value
 
     # Because of Python's dynamic typing, `execute` actually does exactly the
     # same thing as `evaluate`. The distinction is preserved as a usage hint.

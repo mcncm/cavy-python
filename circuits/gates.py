@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import List
 
 import dependencies as deps
@@ -16,6 +17,11 @@ class Gate:
     def with_control(self, control: int) -> List['Gate']:
         return [Gate([])]
 
+    def conjugate(self) -> 'Gate':
+        new_gate = copy(self)
+        new_gate.conj = not self.conj
+        return new_gate
+
 
 class StrongMeasurementGate(Gate):
     """A strong measurement; that is, the "ordinary" sort usually seen in circuit
@@ -32,6 +38,9 @@ class StrongMeasurementGate(Gate):
         # TODO I'm not *quite* sure what to do here, to tell the truth.
         raise NotImplementedError
 
+    def conjugate(self) -> Gate:
+        raise NotImplementedError
+
 
 class NotGate(Gate):
     arity = 1
@@ -43,8 +52,11 @@ class NotGate(Gate):
     def with_control(self, control: int) -> List[Gate]:
         return [CnotGate(control, self.qubits[0])]
 
+    def conjugate(self) -> Gate:
+        return self
 
-class PhaseGate(Gate):
+
+class ZGate(Gate):
     arity = 1
 
     @deps.require('cirq')
@@ -57,7 +69,6 @@ class PhaseGate(Gate):
             CnotGate(control, self.qubits[0]),
             HadamardGate(self.qubits[0])
         ]
-
 
 class TGate(Gate):
     arity = 1

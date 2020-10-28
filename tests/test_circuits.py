@@ -45,6 +45,19 @@ def test_two_qubits():
     )
 
 
+def test_one_false():
+    """Test the (dubious) ? syntax for linearization"""
+    circuit_test_template(
+        "q <- ?false;",
+        []
+    )
+
+def test_one_true():
+    """Test the (dubious) ? syntax for linearization"""
+    circuit_test_template(
+        "q <- ?true;",
+        [(gates.NotGate, [0])]
+    )
 def test_one_split():
     circuit_test_template(
         "q <- split(qubit());",
@@ -66,10 +79,10 @@ def test_not_gate():
     )
 
 
-def test_phase_gate():
+def test_z_gate():
     circuit_test_template(
-        "q <- split(qubit()); r <- phase(q);",
-        [(gates.HadamardGate, [0]), (gates.PhaseGate, [0])]
+        "q <- split(qubit()); r <- flip(q);",
+        [(gates.HadamardGate, [0]), (gates.ZGate, [0])]
     )
 
 def test_cnot_gate():
@@ -81,4 +94,45 @@ def test_cnot_gate():
         }
         """,
         [(gates.CnotGate, [0, 1])]
+    )
+
+def test_contravariant_eval_not():
+    circuit_test_template("""
+        q <- ?false;
+        r <- ?false;
+        if ~q {
+            r <- ~r;
+        }
+        """,
+        [(gates.NotGate, [0]),
+         (gates.CnotGate, [0, 1]),
+         (gates.NotGate, [0])]
+    )
+
+def test_contravariant_eval_z():
+    circuit_test_template("""
+        q <- ?false;
+        r <- ?false;
+        if flip(q) {
+            r <- ~r;
+        }
+        """,
+        [(gates.ZGate, [0]),
+         (gates.CnotGate, [0, 1]),
+         (gates.ZGate, [0])]
+    )
+
+def test_contravariant_eval_split_not():
+    circuit_test_template("""
+        q <- ?false;
+        r <- ?false;
+        if split(~q) {
+            r <- ~r;
+        }
+        """,
+        [(gates.HadamardGate, [0]),
+         (gates.NotGate, [0]),
+         (gates.CnotGate, [0, 1]),
+         (gates.NotGate, [0]),
+         (gates.HadamardGate, [0])]
     )

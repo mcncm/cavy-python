@@ -4,6 +4,6 @@ from .lang_builtins import *
 BUILTINS = {
     'qubit': AllocQubit(),
     'split': Split(),
-    'phase': Phase(),
+    'flip':  Flip(),
     'debug': Debug(),
 }
