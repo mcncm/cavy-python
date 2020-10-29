@@ -144,11 +144,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
             # TODO replace this check with a check on the linearity of the
             # value's type
             if isinstance(cond_value, Qubit):
-                # if not isinstance(
-                #         stmt.cond,
-                #         Variable):  # this is my *only* allowed case for now
-                #     raise NotImplementedError
-
                 # The visitor pattern is broken here. This seems, though, to be the
                 # easiest way to pass in the control data, and it should be
                 # guaranteed by the parser that this is a block statement.
@@ -184,7 +179,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def evaluate(self, expr: Expression) -> Any:
         return expr.accept(self)
-
 
     @contextmanager
     def coevaluate(self, expr: Expression) -> Any:
@@ -241,9 +235,10 @@ class Interpreter(ExprVisitor, StmtVisitor):
             for name, value in bindings:
                 self.environment[name] = value
 
-    # Because of Python's dynamic typing, `execute` actually does exactly the
-    # same thing as `evaluate`. The distinction is preserved as a usage hint.
     def execute(self, stmt: Statement) -> None:
+        """Because of Python's dynamic typing, `execute` actually does exactly the same
+        thing as `evaluate`. The distinction is preserved as a usage hint.
+        """
         return stmt.accept(self)
 
     def execute_blockstmt(self, stmts: List[Statement],

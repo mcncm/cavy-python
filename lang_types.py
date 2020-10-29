@@ -73,6 +73,9 @@ class Array(CavyType):
     def __iter__(self):
         return iter(self.values)
 
+    def __repr__(self):
+        return '[' + ', '.join([str(item) for item in self.values]) + ']'
+
 
 class QubitMeasurement(CavyType):
     """A counterpart to the Qubit class above; the corresponding post-measurement

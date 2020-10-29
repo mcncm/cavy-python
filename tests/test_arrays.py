@@ -56,3 +56,14 @@ def test_qubit_array_conditional():
          (gates.HadamardGate, [2]),
          (gates.CnotGate, [1, 3])],
     )
+
+def test_qubit_array_vectorized_gates():
+    circuit_test_template("""
+        arr <- [?false; 3];
+        arr <- split(arr);
+        arr <- split(arr);
+        """,
+        [(gates.HadamardGate, [0]),
+         (gates.HadamardGate, [1]),
+         (gates.HadamardGate, [2])] * 2
+    )
