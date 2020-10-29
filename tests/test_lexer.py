@@ -1,6 +1,6 @@
 from lang_token import TokenType
-
 from lexer import Lexer
+from .templates import token_test_template
 
 
 def test_simple():
@@ -64,18 +64,6 @@ def test_fail():
     tokens = lexer.lex()
 
     assert len(lexer.errors) > 0
-
-
-def token_test_template(code, token_types):
-    lexer = Lexer(code)
-    tokens = lexer.lex()
-    tokens.pop(-1)  # ignore eof
-    lexed_token_types = list(map(lambda t: t.token_type, tokens))
-
-    assert len(lexed_token_types) == len(token_types)
-
-    for (lexed_tt, spec_tt) in zip(lexed_token_types, token_types):
-        assert lexed_tt == spec_tt
 
 
 example_complex_code = "(12)+ *<- IdEnT;  ~="

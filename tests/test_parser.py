@@ -9,6 +9,9 @@ def code_to_s_expr(code):
 def expr_test_template(code, tree: Tuple):
     """Generates a test case comparing the AST produced by the parser with a
     hand-written S-expression.
+
+    TODO: there's another `expr_test_template` function in templates.py that
+    does something slightly different. Combine these if you can.
     """
     assert code_to_s_expr(code) == tree
 

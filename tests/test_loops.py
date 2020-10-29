@@ -1,5 +1,4 @@
-from .test_interpreter import stmt_test_template
-from .test_circuits import circuit_test_template
+from .templates import stmt_test_template, circuit_test_template
 import circuits.gates as gates
 
 # def circuit_test_template(code: str, gates_expected: List[Tuple[type, List[int]]]):

@@ -6,7 +6,7 @@ from circuits.gates import Gate
 from errors import CavyRuntimeError
 from lang_token import Token
 from lang_ast import Variable
-from lang_types import Qubit, QubitMeasurement
+from lang_types import Qubit, QubitMeasurement, is_linear
 
 
 class UnboundNameError(CavyRuntimeError):
@@ -101,7 +101,7 @@ class Environment:
         try:
             value = self.values[name]
             if value is not None:
-                if isinstance(value, Qubit):
+                if is_linear(value):
                     # The value is a quantum state: remove it from the environment!
                     # Instead of popping the value, we'll replace it with a special
                     # sigil ('None') that otherwise has no meaning / isn't a valid

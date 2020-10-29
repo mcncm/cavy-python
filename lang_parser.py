@@ -229,13 +229,43 @@ class Parser:
             op = self.prev()
             right = self.unary()
             return UnOp(op, right)
-        return self.call()
+        elif self.match_tokens(TokenType.LBRACKET):
+            return self.finish_array()
+        else:
+            return self.call()
+
+    def finish_array(self):
+        """Finish parsing an array, where the opening bracket has already been consumed
+        """
+
+        def closing_bracket():
+            return self.consume(TokenType.RBRACKET, "mising ']' at end of array")
+
+        head = self.expression()
+        if self.match_tokens(TokenType.COMMA):
+            items = []
+            while True:
+                items.append(self.expression())
+                if not self.match_tokens(TokenType.COMMA):
+                    break
+            items.insert(0, head)
+            return ExtensionalArray(items, closing_bracket())
+        elif self.match_tokens(TokenType.SEMICOLON):
+            reps = self.expression()
+            return IntensionalArray(head, reps, closing_bracket())
+        else:
+            # NOTE what happens in this case? Does the parser know what to do?
+            self.error(self.curr(), "Expected ',' or ';' in array.")
 
     def call(self):
+        """Call a function or index into an array
+        """
         expr = self.primary()
         while True:
             if self.match_tokens(TokenType.LPAREN):
                 expr = self.finish_call(expr)
+            elif self.match_tokens(TokenType.LBRACKET):
+                expr = self.finish_index(expr)
             else:
                 break
         return expr
@@ -252,6 +282,11 @@ class Parser:
                     break
         paren = self.consume(TokenType.RPAREN, "missing ')' at end of arguments")
         return Call(callee, args, paren)
+
+    def finish_index(self, root):
+        index = self.expression()
+        bracket = self.consume(TokenType.RBRACKET, "missing ']' at end of index expression")
+        return Index(root, index, bracket)
 
     def primary(self) -> Optional[Expression]:
         if self.match_tokens(TokenType.INT, TokenType.BOOL):

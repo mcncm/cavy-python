@@ -1,25 +1,6 @@
-from contextlib import redirect_stdout
-from io import StringIO
-from typing import List, Tuple
+from .templates import unitary_test_template
 
-from lexer import Lexer
-from interpreter import Interpreter
-from lang_parser import Parser
-import circuits.gates as gates
-
-import cirq
 import numpy as np
-
-
-def unitary_test_template(code: str, unitary_expected: np.array):
-    """Checks that the circuit produced by a code snippet matches a template
-    numerically. The template is given as a unitary matrix."""
-    interpreter = Interpreter()
-    statements = Parser(Lexer(code).lex()).parse()
-    interpreter.interpret(statements)
-    circuit = interpreter.circuit.to_cirq()
-    unitary = cirq.unitary(circuit)
-    assert np.allclose(unitary, unitary_expected)
 
 
 def test_not():

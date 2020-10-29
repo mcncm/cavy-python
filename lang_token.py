@@ -22,7 +22,6 @@ class TokenType(Enum):
     FOR = auto()
     FN = auto()
     IN = auto()
-    REG = auto()
     PRINT = auto()
 
     # literals

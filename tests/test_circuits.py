@@ -1,32 +1,7 @@
-from contextlib import redirect_stdout
-from io import StringIO
-from typing import List, Tuple
-
 from environment import MovedValueError
-from lexer import Lexer
-from interpreter import Interpreter
-from lang_parser import Parser
 import circuits.gates as gates
 
-import pytest
-
-def circuit_test_template(code: str, gates_expected: List[Tuple[type, List[int]]],
-                          exception=None):
-    """Checks that the circuit produced by a code snippet matches a template
-    exactly. The template is given"""
-    interpreter = Interpreter()
-    statements = Parser(Lexer(code).lex()).parse()
-    if exception is None:
-        interpreter.interpret(statements)
-    else:
-        with pytest.raises(exception):
-            Interpreter().interpret(statements)
-    gates = interpreter.circuit.gates
-    assert len(gates) == len(gates_expected)
-    for (gate, (type_expected, qubits_expected)) in zip(gates, gates_expected):
-        assert type(gate) == type_expected
-        assert list(gate.qubits) == qubits_expected
-
+from .templates import circuit_test_template
 
 def test_no_qubits():
     circuit_test_template("v <- 1; print v;", [])

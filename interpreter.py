@@ -7,7 +7,7 @@ from environment import Environment
 from functions import BUILTINS, AbstractFunction, Function
 from lang_ast import *
 from lang_token import TokenType
-from lang_types import Qubit, QubitMeasurement
+from lang_types import Array, Qubit, QubitMeasurement, is_linear
 
 
 class InterpreterError(Exception):
@@ -92,6 +92,18 @@ class Interpreter(ExprVisitor, StmtVisitor):
         # TODO error handling
         return self.environment[expr]
 
+    def visit_extensionalarray(self, expr: ExtensionalArray) -> Any:
+        return Array([self.evaluate(item) for item in expr.items])
+
+    def visit_intensionalarray(self, expr: IntensionalArray) -> Any:
+        reps = self.evaluate(expr.reps)
+        return Array([self.evaluate(expr.item) for head in range(reps)])
+
+    def visit_index(self, expr: Index) -> Any:
+        root = self.evaluate(expr.root)
+        index = self.evaluate(expr.index)
+        return root[index]
+
     def visit_call(self, expr: Call) -> Any:
         callee = self.evaluate(expr.callee)
         if not isinstance(callee, AbstractFunction):
@@ -146,22 +158,24 @@ class Interpreter(ExprVisitor, StmtVisitor):
                     Environment(self.environment, control=control))
 
             # classical type: this is an "ordinary" `if` statement
-            else:
+            elif isinstance(cond_value, bool):
                 if cond_value:
                     self.execute(stmt.then_branch)
                     return
                 if (else_branch := stmt.else_branch):
                     self.execute(else_branch)
 
+            else:
+                raise _TypeError(f"{cond_value} is an invalid type in a condition")
+
     def visit_forstmt(self, stmt: ForStmt) -> None:
-        # TODO linear iterators
         binder = stmt.binder.data
-        iterator = stmt.iterator
-        for iter_val in self.evaluate(iterator):
-            self.execute_blockstmt(
-                stmt.body.stmts,
-                Environment(self.environment, defaults={binder: iter_val})
-            )
+        with self.coevaluate(stmt.iterator) as iterator:
+            for iter_val in iterator:
+                self.execute_blockstmt(
+                    stmt.body.stmts,
+                    Environment(self.environment, defaults={binder: iter_val})
+                )
 
     def visit_fnstmt(self, stmt: FnStmt) -> None:
         """Define a function!
@@ -203,10 +217,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         def getitem_new(var):
             value = getitem_old(var)
-            # TODO I also need a better way to check for linearity -- this
-            # doesn’t cut it, and won’t cut it when I have more complicated
-            # linear data structures.
-            if isinstance(value, Qubit):
+            if is_linear(value):
                 bindings.append((var, value))
             return value
 

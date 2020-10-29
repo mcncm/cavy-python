@@ -65,6 +65,20 @@ EXPR_NODES = {
     'Variable': {
         'name': Token,
     },
+    'ExtensionalArray': {
+        'items': List[Expression],
+        'bracket': Token,
+    },
+    'IntensionalArray': {
+        'item': Expression,
+        'reps': Expression,
+        'bracket': Token,
+    },
+    'Index': {
+        'root': Expression,
+        'index': Expression,
+        'bracket': Token,
+    },
     'Call': {
         'callee': Expression,
         'args': List[Expression],

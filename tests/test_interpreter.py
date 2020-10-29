@@ -1,19 +1,4 @@
-from lexer import Lexer
-from interpreter import Interpreter
-from lang_parser import Parser
-
-from contextlib import redirect_stdout
-from io import StringIO
-
-import pytest
-
-def expr_test_template(code, value_expected):
-    """Generates a test case comparing the AST produced by the parser with a
-    hand-written S-expression.
-    """
-    ast = Parser(Lexer(code).lex()).expression()
-    assert Interpreter().evaluate(ast) == value_expected
-
+from .templates import expr_test_template, stmt_test_template
 
 def test_simple_addition():
     expr_test_template("1 + 1", 2)
@@ -37,22 +22,6 @@ def test_eq_2():
 
 def test_neq():
     expr_test_template("true ~= false", True)
-
-
-def stmt_test_template(code, trace_expected, exception=None):
-    """
-    Here 'exception' is either None, or an expected exception type.
-    """
-    statements = Parser(Lexer(code).lex()).parse()
-    output = StringIO()
-    with redirect_stdout(output):
-        if exception is None:
-            Interpreter().interpret(statements)
-        else:
-            with pytest.raises(exception):
-                Interpreter().interpret(statements)
-    trace_actual = output.getvalue().split()
-    assert trace_actual == trace_expected
 
 
 def test_simple_print():
