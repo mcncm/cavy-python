@@ -9,6 +9,7 @@ KEYWORDS = {
     'if':    TokenType.IF,
     'else':  TokenType.ELSE,
     'for':   TokenType.FOR,
+    'let':  TokenType.LET,
     'in':    TokenType.IN,
     'fn':    TokenType.FN,
     'print': TokenType.PRINT,

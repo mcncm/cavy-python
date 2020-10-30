@@ -141,6 +141,8 @@ class Parser:
     def statement(self) -> Statement:
         if self.match_tokens(TokenType.IF):
             return self.if_statement()
+        elif self.match_tokens(TokenType.LET):
+            return self.let_statement()
         elif self.match_tokens(TokenType.FOR):
             return self.for_statement()
         elif self.match_tokens(TokenType.PRINT):
@@ -172,9 +174,21 @@ class Parser:
             else_branch = None
         return IfStmt(condition, then_branch, else_branch)
 
+    def let_statement(self) -> LetStmt:
+        binder = self.consume(TokenType.IDENT, "expected an identifier to bind 'let' statement")
+        self.consume(TokenType.LESSMINUS,
+                     "expected '<-' in 'with' statement")
+        expr = self.expression()
+        self.consume(TokenType.IN,
+                     "expexted 'in' in 'with' statement")
+        self.consume(TokenType.LBRACE,
+                     "missing '{' opening 'with' body")
+        body = self.block_statement()
+        return LetStmt(binder, expr, body)
+
     def for_statement(self) -> ForStmt:
-        binder = self.consume(TokenType.IDENT, "Expected an identifier to bind 'for' statement")
-        self.consume(TokenType.IN, "Expected 'in' in 'for' statement")
+        binder = self.consume(TokenType.IDENT, "expected an identifier to bind 'for' statement")
+        self.consume(TokenType.IN, "expected 'in' in 'for' statement")
         iterator = self.expression()
         self.consume(TokenType.LBRACE,
                      "missing '{' opening loop body")

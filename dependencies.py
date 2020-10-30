@@ -42,6 +42,13 @@ DEPENDENCIES = {
         url='http://labber.org/online-doc/api/index.html',
         desc="""The Python API for the Labber automation toolkit"""
     ),
+    'numpy': DependencySpec(
+        # The capitalization is intentional!
+        name='numpy',
+        kind=DependencyKind.PYTHON_PKG,
+        url='http://numpy.org',
+        desc="""Python's de facto official numerical package"""
+    ),
     '__unsatisfiable__': DependencySpec(
         name='unsatisfiable',
         kind=DependencyKind.UNSATISFIABLE,
@@ -61,7 +68,7 @@ class MissingDependencyError(CavyRuntimeError):
     def __str__(self):
         fmt = """Error: this feature requires the missing dependency '{}'.
 Install the '{}' {} [{}]"""
-        return fmt.format(self.dep, self.spec.name, self.spec.kind, self.spec.url)
+        return fmt.format(self.dep, self.spec.name, self.spec.kind.value, self.spec.url)
 
 
 def load_dependency(dep: str):

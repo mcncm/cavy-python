@@ -20,8 +20,9 @@ class TokenType(Enum):
     IF = auto()
     ELSE = auto()
     FOR = auto()
-    FN = auto()
+    LET = auto()
     IN = auto()
+    FN = auto()
     PRINT = auto()
 
     # literals

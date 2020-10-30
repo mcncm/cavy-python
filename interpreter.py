@@ -163,6 +163,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
             else:
                 raise _TypeError(f"{cond_value} is an invalid type in a condition")
 
+    def visit_letstmt(self, stmt: LetStmt) -> None:
+        binder = stmt.binder.data
+        with self.coevaluate(stmt.expr) as expr_value:
+            self.execute_blockstmt(
+                stmt.body.stmts,
+                Environment(self.environment, defaults={binder: expr_value})
+            )
+
     def visit_forstmt(self, stmt: ForStmt) -> None:
         binder = stmt.binder.data
         with self.coevaluate(stmt.iterator) as iterator:

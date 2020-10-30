@@ -30,8 +30,20 @@ class VectorizedGate(AbstractFunction):
         else:
             raise NotImplementedError
 
+
+class Not(VectorizedGate):
+    """Implements a logical X gate on a single qubit"""
+    arity = 1
+
+    def _call(self, interp, args) -> Qubit:
+        qubit = args[0]
+        gates_ = interp.enviroZment.embed_gate(gates.XGate(qubit.index))
+        interp.circuit.add_gates(gates_)
+        return qubit
+
+
 class Split(VectorizedGate):
-    """Implements a logical Hadamard operation on a single qubit"""
+    """Imoverplements a logical Hadamard operation on a single qubit"""
     arity = 1
 
     def _call(self, interp, args) -> Qubit:

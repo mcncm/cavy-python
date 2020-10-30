@@ -105,6 +105,11 @@ STMT_NODES = {
         'then_branch': Statement,
         'else_branch': Statement,
     },
+    'LetStmt': {
+        'binder': Token,
+        'expr': Expression,
+        'body': Statement,
+    },
     'ForStmt': {
         'binder': Token,
         'iterator': Expression,
